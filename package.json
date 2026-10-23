@@ -1,0 +1,42 @@
+{
+  "name": "code-laundry",
+  "version": "0.1.0",
+  "description": "Deterministic-first sanitizer for AI-generated code, exposed as an MCP server and CLI",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "codelaundry": "dist/cli/index.js",
+    "codelaundry-mcp": "dist/mcp/server.js"
+  },
+  "files": [
+    "dist",
+    "rules"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "evals": "tsx evals/run.ts",
+    "mcp": "tsx src/mcp/server.ts",
+    "cli": "tsx src/cli/index.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.2.0",
+    "@eslint/js": "^10.0.1",
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@types/node": "^22.20.5",
+    "diff": "^9.0.0",
+    "eslint": "^10.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15",
+    "vitest": "^5.0.5"
+  }
+}

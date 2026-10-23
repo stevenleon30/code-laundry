@@ -1,0 +1,1 @@
+{ "ignoreRules": ["eslint/@typescript-eslint/no-explicit-any"] }

@@ -1,10 +1,11 @@
 # Task list (milestone = one commit)
 
-## M1 — Pipeline core + format/lint/typecheck
-- [ ] pnpm scaffold, strict tsconfig, vitest, biome-free (ESLint + typescript-eslint + Prettier as deps)
-- [ ] core: types, stage, pipeline, registry, verdict, config, exec, workspace, redact, diff
-- [ ] stages: detect, ts.parse (TS compiler API diagnostics), ts.format (prettier), ts.lint (eslint --fix), ts.typecheck (tsc --noEmit)
-- [ ] unit tests per stage + pipeline
+## M1 — Pipeline core + format/lint/typecheck ✅
+- [x] pnpm scaffold, strict tsconfig, vitest (ESLint + typescript-eslint + Prettier as deps)
+- [x] core: types, stage, pipeline, registry, verdict, config, redact, diff
+      (`exec.ts` moves to M3, where the first subprocess tools arrive; no temp workspace needed — see ARCHITECTURE "Virtual file")
+- [x] stages: detect, ts.parse, ts.format (Prettier), ts.lint (ESLint autofix + type-aware pass), ts.typecheck (TS compiler API)
+- [x] tests: verdict, config, redaction, pipeline (29 tests)
 
 ## M2 — MCP wrapper
 - [ ] stdio server; launder_code, check_dependencies (stub until M3), explain_findings
@@ -29,7 +30,11 @@
 - [ ] .github/workflows/evals.yml (installs semgrep/gitleaks/osv-scanner, runs evals)
 - [ ] README with Claude Code + Claude Desktop MCP config
 
-## Known gaps / environment notes (as of planning)
+## Known gaps / environment notes
+- TypeScript is pinned to 6.0.x: TS 7 (native) has no stable JS API, and typescript-eslint supports <6.1.
+- Fixed-finding attribution for ESLint autofix is by rule count (before vs after), so the
+  "fixed" flag is exact per rule but not per individual occurrence.
+- Legacy `.eslintrc` configs are not supported (ESLint 10 dropped them); such projects get the bundled config.
 - This container lacks **semgrep, gitleaks, osv-scanner, biome**. I'll try `pip install semgrep`
   and fetching gitleaks/osv-scanner binaries; if blocked, those stages report `skipped`
   locally and the GitHub Action installs them for CI.

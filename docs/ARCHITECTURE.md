@@ -36,6 +36,21 @@ evals/
   run.ts            precision / recall / FPR / repair-success; exits non-zero below threshold
 ```
 
+## Virtual file and in-process tools
+The submitted code is never written to disk. Each run gets a *virtual path*: inside
+`projectRoot` when given (clamped against `../` traversal), otherwise under a temp dir.
+A custom TS `CompilerHost` serves the code at that path and reads everything else
+(lib files, `node_modules`, project files) from disk, cached by mtime.
+
+ESLint (`Linter`), Prettier and the TypeScript compiler run **in-process** as libraries
+(still the real tools, not reimplementations). A long-lived MCP server keeps them warm:
+first call ≈1.8s, later calls ≈100–200ms. Tools without a library API (Semgrep,
+gitleaks, osv-scanner) run as subprocesses via `exec.ts`.
+
+The lint stage runs twice: syntactic rules with autofix (project flat config if present,
+else bundled), then type-aware rules (`no-floating-promises`, `no-misused-promises`, …)
+report-only, against the same TS program the typecheck stage uses.
+
 ## Stage interface
 ```ts
 interface Stage {
