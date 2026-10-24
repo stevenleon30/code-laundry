@@ -1,0 +1,10 @@
+{
+  "id": "ho-clean-batch",
+  "category": "clean",
+  "description": "Batched work with Promise.all and error propagation",
+  "expect": [],
+  "allow": [],
+  "repairable": false,
+  "file": "ho-clean-batch.ts",
+  "holdout": true
+}

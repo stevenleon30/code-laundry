@@ -1,0 +1,11 @@
+{
+  "id": "sec-reflected-xss",
+  "category": "security",
+  "description": "Query param echoed into HTML",
+  "expect": [
+    "semgrep/xss-reflected"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "sec-reflected-xss.ts"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "sqli-express-template",
+  "category": "sql-injection",
+  "description": "Request query interpolated into SQL",
+  "expect": [
+    "semgrep/sql-injection*"
+  ],
+  "repairable": true,
+  "allow": [
+    "semgrep/sql-injection*"
+  ],
+  "file": "sqli-express-template.ts"
+}

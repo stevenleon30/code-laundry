@@ -1,0 +1,11 @@
+{
+  "id": "sec-tls-disabled",
+  "category": "security",
+  "description": "TLS verification turned off",
+  "expect": [
+    "semgrep/tls-verification-disabled"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "sec-tls-disabled.ts"
+}

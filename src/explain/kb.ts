@@ -129,6 +129,16 @@ const RULES: Record<string, Explanation> = {
   "semgrep/insecure-randomness": { title: "Predictable random value", why: "Math.random() is not cryptographically secure; tokens made with it can be guessed.", fix: "Use crypto.randomBytes(32).toString('hex') or crypto.randomUUID()." },
   "semgrep/tls-verification-disabled": { title: "TLS verification disabled", why: "Disabling certificate checks allows man-in-the-middle attacks.", fix: "Remove rejectUnauthorized: false; fix the CA configuration instead (e.g. NODE_EXTRA_CA_CERTS)." },
   "semgrep/jwt-none-or-unverified": { title: "Unverified JWT", why: "Allowing alg 'none' lets anyone forge tokens.", fix: "jwt.verify(token, key, { algorithms: ['RS256'] }) with an explicit, signed algorithm." },
+  "semgrep/hardcoded-signing-key": {
+    title: "Hardcoded signing key",
+    why: "A JWT/HMAC key in source lets anyone with the code forge valid tokens.",
+    fix: "Read the key from configuration (process.env.JWT_SECRET) and rotate the exposed one.",
+  },
+  "eslint/@typescript-eslint/return-await": {
+    title: "Un-awaited return inside try",
+    why: "`return promise` inside try returns before the promise settles, so its rejection bypasses the catch block.",
+    fix: "Use `return await promise` inside try/catch.",
+  },
   "semgrep/cors-wildcard-with-credentials": { title: "Permissive CORS", why: "Any site can make credentialed requests on behalf of your users.", fix: "Set origin to an explicit allow-list." },
   "secrets/*": {
     title: "Hardcoded secret",

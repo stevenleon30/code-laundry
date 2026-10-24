@@ -1,0 +1,9 @@
+{
+  "id": "clean-react-component",
+  "category": "clean",
+  "description": "Typed React component",
+  "expect": [],
+  "repairable": false,
+  "allow": [],
+  "file": "clean-react-component.tsx"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "await-return-in-try",
+  "category": "missing-await",
+  "description": "Returned promise escapes the try/catch",
+  "expect": [
+    "eslint/@typescript-eslint/return-await"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "await-return-in-try.ts"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "slop-placeholder-impl",
+  "category": "slop",
+  "description": "Placeholder payment logic always succeeds",
+  "expect": [
+    "slop/placeholder-comment"
+  ],
+  "repairable": false,
+  "allow": [],
+  "file": "slop-placeholder-impl.ts"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "types-wrong-return",
+  "category": "bad-types",
+  "description": "Returns number where string declared",
+  "expect": [
+    "tsc/TS2322"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "types-wrong-return.ts"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "ho-api-util-debounce",
+  "category": "wrong-api",
+  "description": "node:util has no debounce",
+  "expect": [
+    "slop/invented-api"
+  ],
+  "allow": [],
+  "repairable": true,
+  "file": "ho-api-util-debounce.ts",
+  "holdout": true
+}

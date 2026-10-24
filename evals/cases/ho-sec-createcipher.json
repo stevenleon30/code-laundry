@@ -1,0 +1,15 @@
+{
+  "id": "ho-sec-createcipher",
+  "category": "security",
+  "description": "Deprecated createCipher",
+  "expect": [
+    "semgrep/weak-cipher"
+  ],
+  "allow": [
+    "slop/invented-api",
+    "tsc/*"
+  ],
+  "repairable": true,
+  "file": "ho-sec-createcipher.ts",
+  "holdout": true
+}

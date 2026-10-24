@@ -1,0 +1,9 @@
+{
+  "id": "clean-crypto-token",
+  "category": "clean",
+  "description": "Secure token generation and password hashing",
+  "expect": [],
+  "repairable": false,
+  "allow": [],
+  "file": "clean-crypto-token.ts"
+}

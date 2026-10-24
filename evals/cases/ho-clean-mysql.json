@@ -1,0 +1,10 @@
+{
+  "id": "ho-clean-mysql",
+  "category": "clean",
+  "description": "Parameterized mysql2 query with helmet",
+  "expect": [],
+  "allow": [],
+  "repairable": false,
+  "file": "ho-clean-mysql.ts",
+  "holdout": true
+}

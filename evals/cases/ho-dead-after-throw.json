@@ -1,0 +1,12 @@
+{
+  "id": "ho-dead-after-throw",
+  "category": "dead-code",
+  "description": "Code after throw",
+  "expect": [
+    "eslint/no-unreachable"
+  ],
+  "allow": [],
+  "repairable": true,
+  "file": "ho-dead-after-throw.ts",
+  "holdout": true
+}

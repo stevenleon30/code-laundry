@@ -1,0 +1,13 @@
+{
+  "id": "ho-types-implicit-any",
+  "category": "bad-types",
+  "description": "Untyped parameters in TypeScript",
+  "expect": [
+    "tsc/TS7006",
+    "tsc/TS7006"
+  ],
+  "allow": [],
+  "repairable": true,
+  "file": "ho-types-implicit-any.ts",
+  "holdout": true
+}

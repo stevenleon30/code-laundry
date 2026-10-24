@@ -1,0 +1,13 @@
+{
+  "id": "sqli-mysql-body",
+  "category": "sql-injection",
+  "description": "mysql2 execute with request body in template",
+  "expect": [
+    "semgrep/sql-injection*"
+  ],
+  "repairable": true,
+  "allow": [
+    "semgrep/sql-injection*"
+  ],
+  "file": "sqli-mysql-body.ts"
+}

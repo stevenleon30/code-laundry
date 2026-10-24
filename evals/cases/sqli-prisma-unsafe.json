@@ -1,0 +1,11 @@
+{
+  "id": "sqli-prisma-unsafe",
+  "category": "sql-injection",
+  "description": "Prisma $queryRawUnsafe with interpolation",
+  "expect": [
+    "semgrep/sql-injection-string-built"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "sqli-prisma-unsafe.ts"
+}

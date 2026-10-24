@@ -1,0 +1,11 @@
+{
+  "id": "dead-commented-out",
+  "category": "dead-code",
+  "description": "Block of commented-out code",
+  "expect": [
+    "slop/commented-out-code"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "dead-commented-out.ts"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "slop-truncated",
+  "category": "slop",
+  "description": "Generation truncated with a placeholder comment",
+  "expect": [
+    "slop/truncated-code"
+  ],
+  "repairable": false,
+  "allow": [],
+  "file": "slop-truncated.ts"
+}

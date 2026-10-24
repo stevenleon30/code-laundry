@@ -1,0 +1,11 @@
+{
+  "id": "await-floating-js",
+  "category": "missing-await",
+  "description": "Floating promise in JavaScript",
+  "expect": [
+    "eslint/@typescript-eslint/no-floating-promises"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "await-floating-js.js"
+}

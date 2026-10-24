@@ -1,0 +1,11 @@
+{
+  "id": "dep-removed-malicious",
+  "category": "hallucinated-package",
+  "description": "Requires a package npm removed as malware",
+  "expect": [
+    "deps/removed-malicious"
+  ],
+  "repairable": false,
+  "allow": [],
+  "file": "dep-removed-malicious.js"
+}

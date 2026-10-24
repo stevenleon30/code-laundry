@@ -1,0 +1,12 @@
+{
+  "id": "ho-slop-real-app",
+  "category": "slop",
+  "description": "'In a real application' placeholder auth",
+  "expect": [
+    "slop/placeholder-comment"
+  ],
+  "allow": [],
+  "repairable": false,
+  "file": "ho-slop-real-app.ts",
+  "holdout": true
+}

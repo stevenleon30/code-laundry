@@ -11,6 +11,7 @@ export const RULE_META: Record<string, { severity: Severity; category?: Category
   "@typescript-eslint/no-misused-promises": { severity: "high" },
   "@typescript-eslint/await-thenable": { severity: "medium" },
   "@typescript-eslint/only-throw-error": { severity: "medium" },
+  "@typescript-eslint/return-await": { severity: "medium" },
   "no-unreachable": { severity: "medium" },
   "no-dupe-keys": { severity: "high" },
   "no-dupe-else-if": { severity: "high" },
@@ -45,6 +46,9 @@ export const SYNTACTIC_RULES: Linter.RulesRecord = {
   // tsc reports undefined names with real type information.
   "no-undef": "off",
   "@typescript-eslint/no-require-imports": "off",
+  // typescript-eslint's recommended config turns this off assuming tsc reports it, but tsc
+  // only does so with allowUnreachableCode: false (default: editor suggestion, not an error).
+  "no-unreachable": "error",
   "@typescript-eslint/no-unused-vars": ["error", { args: "after-used", ignoreRestSiblings: true, caughtErrors: "none" }],
   "prefer-const": "error",
   "no-var": "error",
@@ -65,4 +69,6 @@ export const TYPED_RULES: Linter.RulesRecord = {
   "@typescript-eslint/await-thenable": "error",
   "@typescript-eslint/no-implied-eval": "error",
   "@typescript-eslint/only-throw-error": "error",
+  // A promise returned un-awaited inside try escapes the catch block.
+  "@typescript-eslint/return-await": ["error", "in-try-catch"],
 };

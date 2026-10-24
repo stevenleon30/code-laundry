@@ -1,0 +1,11 @@
+{
+  "id": "await-foreach-async",
+  "category": "missing-await",
+  "description": "async callback in forEach is never awaited",
+  "expect": [
+    "eslint/@typescript-eslint/no-misused-promises"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "await-foreach-async.ts"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "sec-ssrf",
+  "category": "security",
+  "description": "Fetches a URL from the query string",
+  "expect": [
+    "semgrep/ssrf"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "sec-ssrf.ts"
+}

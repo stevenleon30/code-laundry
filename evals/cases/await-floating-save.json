@@ -1,0 +1,11 @@
+{
+  "id": "await-floating-save",
+  "category": "missing-await",
+  "description": "Async save called without await",
+  "expect": [
+    "eslint/@typescript-eslint/no-floating-promises"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "await-floating-save.ts"
+}

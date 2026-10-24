@@ -1,0 +1,12 @@
+{
+  "id": "ho-sec-dom-xss",
+  "category": "security",
+  "description": "location.hash written to innerHTML",
+  "expect": [
+    "semgrep/dom-xss"
+  ],
+  "allow": [],
+  "repairable": true,
+  "file": "ho-sec-dom-xss.ts",
+  "holdout": true
+}

@@ -1,0 +1,12 @@
+{
+  "id": "ho-sqli-sequelize",
+  "category": "sql-injection",
+  "description": "Sequelize raw query with request body",
+  "expect": [
+    "semgrep/sql-injection*"
+  ],
+  "allow": [],
+  "repairable": true,
+  "file": "ho-sqli-sequelize.ts",
+  "holdout": true
+}

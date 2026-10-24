@@ -1,0 +1,9 @@
+{
+  "id": "clean-express-params",
+  "category": "clean",
+  "description": "Parameterized query with validation",
+  "expect": [],
+  "repairable": false,
+  "allow": [],
+  "file": "clean-express-params.ts"
+}

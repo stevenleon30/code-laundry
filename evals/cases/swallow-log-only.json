@@ -1,0 +1,11 @@
+{
+  "id": "swallow-log-only",
+  "category": "swallowed-error",
+  "description": "Error logged then ignored",
+  "expect": [
+    "slop/log-and-swallow"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "swallow-log-only.ts"
+}

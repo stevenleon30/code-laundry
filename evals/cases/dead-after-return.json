@@ -1,0 +1,11 @@
+{
+  "id": "dead-after-return",
+  "category": "dead-code",
+  "description": "Statements after return",
+  "expect": [
+    "eslint/no-unreachable"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "dead-after-return.ts"
+}

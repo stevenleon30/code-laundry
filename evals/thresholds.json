@@ -1,0 +1,6 @@
+{
+  "minRecall": 0.9,
+  "minPrecision": 0.85,
+  "maxFalsePositiveRate": 0.1,
+  "minRepairSuccess": null
+}

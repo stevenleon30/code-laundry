@@ -1,0 +1,12 @@
+{
+  "id": "ho-dep-react-hook",
+  "category": "hallucinated-package",
+  "description": "Invented React data-fetching hook package",
+  "expect": [
+    "deps/not-found"
+  ],
+  "allow": [],
+  "repairable": false,
+  "file": "ho-dep-react-hook.tsx",
+  "holdout": true
+}

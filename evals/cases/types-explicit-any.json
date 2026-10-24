@@ -1,0 +1,11 @@
+{
+  "id": "types-explicit-any",
+  "category": "bad-types",
+  "description": "any used to silence the type checker",
+  "expect": [
+    "eslint/@typescript-eslint/no-explicit-any"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "types-explicit-any.ts"
+}

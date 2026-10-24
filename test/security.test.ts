@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { which } from "../src/core/exec.js";
 import { launder } from "../src/core/pipeline.js";
 import { builtinScan } from "../src/stages/shared/secrets.js";
+import { SYNTHETIC_SECRETS as S } from "../evals/synthetic-secrets.js";
 
 const hasSemgrep = Boolean(await which("semgrep", "CODELAUNDRY_SEMGREP"));
 const rules = (r: { findings: { ruleId: string }[] }) => r.findings.map((f) => f.ruleId);
@@ -9,8 +10,8 @@ const rules = (r: { findings: { ruleId: string }[] }) => r.findings.map((f) => f
 describe("secrets", () => {
   it("finds known token shapes and generic high-entropy assignments", () => {
     const code = [
-      'const a = "AKIAIOSFODNN7EXAMPLE";',
-      'const ghToken = "ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789";',
+      `const a = "${S.AWS_KEY_ID}";`,
+      `const ghToken = "${S.GITHUB}";`,
       'const config = { apiKey: "q8Zr2LmX9vKp4TnB7wYc" };',
       'const db = "postgres://admin:S3cr3tPass!@db.internal:5432/app";',
     ].join("\n");
@@ -30,7 +31,7 @@ describe("secrets", () => {
   });
 
   it("rejects and redacts secrets everywhere in the result", async () => {
-    const code = 'export const key = "sk-ant-api03-AbCdEfGhIjKlMnOpQrStUvWxYz0123456789";\n';
+    const code = `export const key = "${S.ANTHROPIC}";\n`;
     const r = await launder({ code, mode: "fix" });
     expect(r.verdict).toBe("reject");
     expect(r.verdictReasons).toContain("secret detected");

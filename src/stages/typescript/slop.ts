@@ -66,6 +66,12 @@ function isDefaultValue(e: ts.Expression | undefined): boolean {
   return false;
 }
 
+function statementOf(node: ts.Node): ts.Node {
+  let n = node;
+  while (n.parent && !ts.isSourceFile(n.parent) && !ts.isBlock(n.parent)) n = n.parent;
+  return n;
+}
+
 function countStatements(node: ts.Node): number {
   let n = 0;
   const visit = (c: ts.Node): void => {
@@ -88,6 +94,7 @@ interface Hit {
 export function slopScan(code: string, filePath: string): { hits: Hit[]; consoleRemovals: Array<{ start: number; end: number }> } {
   const sf = ts.createSourceFile(filePath, code, ts.ScriptTarget.Latest, true);
   const hits: Hit[] = [];
+  const fakeDataStatements = new Set<ts.Node>();
   const consoleRemovals: Array<{ start: number; end: number }> = [];
   const testFile = isTestFile(filePath);
   const add = (h: Hit) => hits.push(h);
@@ -119,7 +126,7 @@ export function slopScan(code: string, filePath: string): { hits: Hit[]; console
     const location = loc(sf, c);
     if (TRUNCATION.test(body)) {
       add({ ruleId: "slop/truncated-code", severity: "high", message: `Comment indicates omitted code ("${body.slice(0, 60)}"): the generated code is incomplete.`, location });
-    } else if (PLACEHOLDER_COMMENT.test(body)) {
+    } else if (PLACEHOLDER_COMMENT.test(body) || (TODO.test(body) && /\b(?:implement|real|actual|proper)\b/i.test(body))) {
       add({ ruleId: "slop/placeholder-comment", severity: "medium", message: `Placeholder left in generated code: "${body.slice(0, 80)}"`, location });
     } else if (TODO.test(body)) {
       add({ ruleId: "slop/todo", severity: "low", message: `Unresolved ${body.match(TODO)?.[0]}: "${body.slice(0, 80)}"`, location });
@@ -225,7 +232,8 @@ export function slopScan(code: string, filePath: string): { hits: Hit[]; console
       if (t.length > 0 && t.length < 120) {
         if (PLACEHOLDER_VALUE.test(t)) {
           add({ ruleId: "slop/placeholder-value", severity: "medium", message: `Placeholder value "${t.slice(0, 40)}" left in code. Read it from configuration instead.`, location: loc(sf, node) });
-        } else if (!testFile && FAKE_DATA.test(t)) {
+        } else if (!testFile && FAKE_DATA.test(t) && !fakeDataStatements.has(statementOf(node))) {
+          fakeDataStatements.add(statementOf(node));
           add({ ruleId: "slop/fake-data", severity: "medium", message: `Fake/sample data ("${t.slice(0, 40)}") left in non-test code.`, location: loc(sf, node) });
         } else if (!testFile && LOCALHOST.test(t)) {
           add({ ruleId: "slop/hardcoded-localhost", severity: "low", message: `Hardcoded local URL "${t.slice(0, 50)}". Make it configurable.`, location: loc(sf, node) });

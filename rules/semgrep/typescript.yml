@@ -25,11 +25,17 @@ rules:
               - pattern: $DB.raw($Q, ...)
               - pattern: $DB.$queryRawUnsafe($Q, ...)
               - pattern: $DB.$executeRawUnsafe($Q, ...)
-              - pattern: $DB.prepare($Q, ...)
-              - pattern: $DB.exec($Q, ...)
-              - pattern: $DB.all($Q, ...)
-              - pattern: $DB.get($Q, ...)
-              - pattern: $DB.run($Q, ...)
+              - patterns:
+                  - pattern-either:
+                      - pattern: $DB.prepare($Q, ...)
+                      - pattern: $DB.exec($Q, ...)
+                      - pattern: $DB.all($Q, ...)
+                      - pattern: $DB.get($Q, ...)
+                      - pattern: $DB.run($Q, ...)
+                  # get/all/run are generic names (axios.get, router.all): only database-like receivers
+                  - metavariable-regex:
+                      metavariable: $DB
+                      regex: (?i)^(this\.)?(db|database|sqlite\w*|conn\w*|client|pool|sql|knex|trx|tx)$
           - focus-metavariable: $Q
     pattern-sanitizers:
       - pattern: parseInt(...)
@@ -289,6 +295,19 @@ rules:
     pattern-either:
       - pattern: '$JWT.verify($T, $K, {..., algorithms: [..., "none", ...], ...})'
       - pattern: '$JWT.verify($T, $K, {..., algorithms: ["none"], ...}, ...)'
+
+  - id: hardcoded-signing-key
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      Signing/HMAC key is a string literal in source. Anyone with the code can forge
+      tokens. Load it from configuration and rotate it.
+    metadata: { laundry_severity: critical, cwe: "CWE-798" }
+    pattern-either:
+      - pattern: $JWT.sign($P, "$K", ...)
+      - pattern: $JWT.verify($T, "$K", ...)
+      - pattern: $C.createHmac($ALG, "$K")
+      - pattern: createHmac($ALG, "$K")
 
   - id: cors-wildcard-with-credentials
     languages: [typescript, javascript]

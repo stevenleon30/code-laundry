@@ -1,0 +1,11 @@
+{
+  "id": "sec-path-traversal",
+  "category": "security",
+  "description": "Serves files by user-supplied name",
+  "expect": [
+    "semgrep/path-traversal"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "sec-path-traversal.ts"
+}

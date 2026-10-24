@@ -1,0 +1,105 @@
+{
+  "packages": {
+    "express": {
+      "latest": "5.1.0",
+      "created": "2010-12-29T19:38:25.450Z",
+      "weeklyDownloads": 40000000
+    },
+    "pg": {
+      "latest": "8.16.0",
+      "created": "2010-10-01T00:00:00.000Z",
+      "weeklyDownloads": 8000000
+    },
+    "mysql2": {
+      "latest": "3.14.0",
+      "created": "2014-01-01T00:00:00.000Z",
+      "weeklyDownloads": 4000000
+    },
+    "@prisma/client": {
+      "latest": "6.16.0",
+      "created": "2019-06-01T00:00:00.000Z",
+      "weeklyDownloads": 5000000
+    },
+    "knex": {
+      "latest": "3.1.0",
+      "created": "2013-05-01T00:00:00.000Z",
+      "weeklyDownloads": 2000000
+    },
+    "sqlite3": {
+      "latest": "5.1.7",
+      "created": "2011-01-01T00:00:00.000Z",
+      "weeklyDownloads": 1000000
+    },
+    "openai": {
+      "latest": "5.20.0",
+      "created": "2020-01-01T00:00:00.000Z",
+      "weeklyDownloads": 8000000
+    },
+    "@anthropic-ai/sdk": {
+      "latest": "1.2.0",
+      "created": "2023-01-01T00:00:00.000Z",
+      "weeklyDownloads": 3000000
+    },
+    "@aws-sdk/client-s3": {
+      "latest": "3.890.0",
+      "created": "2020-12-01T00:00:00.000Z",
+      "weeklyDownloads": 9000000
+    },
+    "stripe": {
+      "latest": "18.5.0",
+      "created": "2011-09-01T00:00:00.000Z",
+      "weeklyDownloads": 3000000
+    },
+    "jsonwebtoken": {
+      "latest": "9.0.2",
+      "created": "2013-01-01T00:00:00.000Z",
+      "weeklyDownloads": 20000000
+    },
+    "axios": {
+      "latest": "1.12.0",
+      "created": "2014-08-29T00:00:00.000Z",
+      "weeklyDownloads": 60000000
+    },
+    "zod": {
+      "latest": "4.1.0",
+      "created": "2020-03-07T20:00:00.000Z",
+      "weeklyDownloads": 30000000
+    },
+    "react": {
+      "latest": "19.1.0",
+      "created": "2011-10-26T17:46:21.942Z",
+      "weeklyDownloads": 30000000
+    },
+    "vitest": {
+      "latest": "3.2.4",
+      "created": "2021-12-01T00:00:00.000Z",
+      "weeklyDownloads": 15000000
+    },
+    "lodash": {
+      "latest": "4.17.21",
+      "created": "2012-04-23T16:37:11.912Z",
+      "weeklyDownloads": 50000000
+    },
+    "expresss": {
+      "latest": "0.0.1",
+      "created": "2015-01-01T00:00:00.000Z",
+      "weeklyDownloads": 12
+    },
+    "lodahs": {
+      "latest": "0.0.1-security",
+      "created": "2019-11-25T16:49:21.220Z",
+      "weeklyDownloads": 30
+    },
+    "sequelize": {
+      "latest": "6.37.7",
+      "created": "2011-07-21T00:00:00.000Z",
+      "weeklyDownloads": 2000000
+    },
+    "helmet": {
+      "latest": "8.1.0",
+      "created": "2012-05-01T00:00:00.000Z",
+      "weeklyDownloads": 3000000
+    }
+  },
+  "vulns": {}
+}

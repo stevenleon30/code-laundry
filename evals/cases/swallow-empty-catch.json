@@ -1,0 +1,11 @@
+{
+  "id": "swallow-empty-catch",
+  "category": "swallowed-error",
+  "description": "Empty catch around file write",
+  "expect": [
+    "slop/empty-catch"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "swallow-empty-catch.ts"
+}

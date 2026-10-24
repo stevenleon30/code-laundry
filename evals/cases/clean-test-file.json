@@ -1,0 +1,9 @@
+{
+  "id": "clean-test-file",
+  "category": "clean",
+  "description": "Test file with sample data (allowed in tests)",
+  "expect": [],
+  "repairable": false,
+  "allow": [],
+  "file": "users.test.ts"
+}

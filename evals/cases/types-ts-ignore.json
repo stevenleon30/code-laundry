@@ -1,0 +1,13 @@
+{
+  "id": "types-ts-ignore",
+  "category": "bad-types",
+  "description": "@ts-ignore hides a real error",
+  "expect": [
+    "eslint/@typescript-eslint/ban-ts-comment"
+  ],
+  "repairable": true,
+  "allow": [
+    "tsc/*"
+  ],
+  "file": "types-ts-ignore.ts"
+}

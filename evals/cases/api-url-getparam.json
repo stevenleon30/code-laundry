@@ -1,0 +1,11 @@
+{
+  "id": "api-url-getparam",
+  "category": "wrong-api",
+  "description": "URL has no getParam method",
+  "expect": [
+    "tsc/TS2339|tsc/TS2551"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "api-url-getparam.ts"
+}

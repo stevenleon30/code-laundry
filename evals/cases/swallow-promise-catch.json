@@ -1,0 +1,11 @@
+{
+  "id": "swallow-promise-catch",
+  "category": "swallowed-error",
+  "description": "Promise rejection discarded",
+  "expect": [
+    "slop/promise-swallow"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "swallow-promise-catch.ts"
+}

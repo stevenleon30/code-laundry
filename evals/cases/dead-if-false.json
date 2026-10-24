@@ -1,0 +1,13 @@
+{
+  "id": "dead-if-false",
+  "category": "dead-code",
+  "description": "if (false) debug branch",
+  "expect": [
+    "slop/dead-code"
+  ],
+  "repairable": true,
+  "allow": [
+    "eslint/no-constant-condition"
+  ],
+  "file": "dead-if-false.ts"
+}

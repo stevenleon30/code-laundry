@@ -1,0 +1,11 @@
+{
+  "id": "api-fs-readfileasync",
+  "category": "wrong-api",
+  "description": "Invented fs.readFileAsync",
+  "expect": [
+    "slop/invented-api"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "api-fs-readfileasync.ts"
+}

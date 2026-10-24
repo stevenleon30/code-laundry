@@ -1,0 +1,13 @@
+{
+  "id": "await-condition",
+  "category": "missing-await",
+  "description": "Promise used as a boolean condition",
+  "expect": [
+    "eslint/@typescript-eslint/no-misused-promises"
+  ],
+  "repairable": true,
+  "allow": [
+    "tsc/TS2801"
+  ],
+  "file": "await-condition.ts"
+}

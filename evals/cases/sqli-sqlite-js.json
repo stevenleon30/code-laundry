@@ -1,0 +1,11 @@
+{
+  "id": "sqli-sqlite-js",
+  "category": "sql-injection",
+  "description": "sqlite3 db.all with template literal (JavaScript)",
+  "expect": [
+    "semgrep/sql-injection-string-built"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "sqli-sqlite-js.js"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "clean-jwt-env",
+  "category": "clean",
+  "description": "JWT signing with key from configuration",
+  "expect": [],
+  "repairable": false,
+  "allow": [],
+  "file": "clean-jwt-env.ts"
+}

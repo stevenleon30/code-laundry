@@ -1,0 +1,9 @@
+{
+  "id": "clean-fetch-json",
+  "category": "clean",
+  "description": "fetch with status check and typed result",
+  "expect": [],
+  "repairable": false,
+  "allow": [],
+  "file": "clean-fetch-json.ts"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "sec-math-random-token",
+  "category": "security",
+  "description": "Session token from Math.random",
+  "expect": [
+    "semgrep/insecure-randomness"
+  ],
+  "repairable": true,
+  "allow": [
+    "semgrep/insecure-randomness"
+  ],
+  "file": "sec-math-random-token.ts"
+}

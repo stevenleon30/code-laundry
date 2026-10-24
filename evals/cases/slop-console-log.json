@@ -1,0 +1,12 @@
+{
+  "id": "slop-console-log",
+  "category": "slop",
+  "description": "Debug logging left in",
+  "expect": [
+    "slop/console-log",
+    "slop/console-log"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "slop-console-log.ts"
+}

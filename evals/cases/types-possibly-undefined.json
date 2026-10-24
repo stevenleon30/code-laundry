@@ -1,0 +1,11 @@
+{
+  "id": "types-possibly-undefined",
+  "category": "bad-types",
+  "description": "Uses result of find() without a check",
+  "expect": [
+    "tsc/TS18048|tsc/TS2532"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "types-possibly-undefined.ts"
+}

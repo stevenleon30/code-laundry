@@ -1,0 +1,12 @@
+{
+  "id": "slop-mock-data",
+  "category": "slop",
+  "description": "Mock users returned from production code",
+  "expect": [
+    "slop/mock-data",
+    "slop/fake-data"
+  ],
+  "repairable": false,
+  "allow": [],
+  "file": "slop-mock-data.ts"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "dep-hallucinated-js",
+  "category": "hallucinated-package",
+  "description": "JavaScript require of an invented package",
+  "expect": [
+    "deps/not-found"
+  ],
+  "repairable": false,
+  "allow": [],
+  "file": "dep-hallucinated-js.js"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "ho-api-json-stringify",
+  "category": "wrong-api",
+  "description": "Extra argument to JSON.stringify",
+  "expect": [
+    "tsc/TS2554"
+  ],
+  "allow": [],
+  "repairable": true,
+  "file": "ho-api-json-stringify.ts",
+  "holdout": true
+}

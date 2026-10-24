@@ -1,0 +1,9 @@
+{
+  "id": "clean-retry",
+  "category": "clean",
+  "description": "Retry helper that rethrows the last error",
+  "expect": [],
+  "repairable": false,
+  "allow": [],
+  "file": "clean-retry.ts"
+}

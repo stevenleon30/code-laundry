@@ -1,0 +1,11 @@
+{
+  "id": "slop-placeholder-key",
+  "category": "slop",
+  "description": "Placeholder API key value",
+  "expect": [
+    "slop/placeholder-value"
+  ],
+  "repairable": false,
+  "allow": [],
+  "file": "slop-placeholder-key.ts"
+}

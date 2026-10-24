@@ -1,0 +1,9 @@
+{
+  "id": "clean-anthropic-client",
+  "category": "clean",
+  "description": "SDK client reading API key from env",
+  "expect": [],
+  "repairable": false,
+  "allow": [],
+  "file": "clean-anthropic-client.ts"
+}

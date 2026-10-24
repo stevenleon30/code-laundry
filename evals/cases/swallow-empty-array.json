@@ -1,0 +1,11 @@
+{
+  "id": "swallow-empty-array",
+  "category": "swallowed-error",
+  "description": "Logs and returns empty list on failure",
+  "expect": [
+    "slop/error-to-default"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "swallow-empty-array.ts"
+}

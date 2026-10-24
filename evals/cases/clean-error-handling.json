@@ -1,0 +1,9 @@
+{
+  "id": "clean-error-handling",
+  "category": "clean",
+  "description": "Catch that wraps and rethrows with context",
+  "expect": [],
+  "repairable": false,
+  "allow": [],
+  "file": "clean-error-handling.ts"
+}

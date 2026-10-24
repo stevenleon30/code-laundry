@@ -1,0 +1,11 @@
+{
+  "id": "types-wrong-arg-count",
+  "category": "bad-types",
+  "description": "Calls a local function with too few arguments",
+  "expect": [
+    "tsc/TS2554"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "types-wrong-arg-count.ts"
+}

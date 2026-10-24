@@ -1,0 +1,11 @@
+{
+  "id": "await-promise-as-value",
+  "category": "missing-await",
+  "description": "Uses the Response before awaiting fetch",
+  "expect": [
+    "tsc/TS2339"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "await-promise-as-value.ts"
+}

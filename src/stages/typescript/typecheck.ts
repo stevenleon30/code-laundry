@@ -5,6 +5,8 @@ import { getProgram, loadTsProject, nodeAt, packageFromPath, packageVersion, toL
 
 /** Module-resolution errors: meaningless without a project (no node_modules); deps stage covers existence. */
 const UNRESOLVED_MODULE_CODES = new Set([2307, 7016, 2875, 2792]);
+/** Missing environment typings (e.g. no JSX namespace without @types/react): not a code defect. */
+const ENVIRONMENT_CODES = new Set([7026]);
 
 /** Errors that only exist because of strict-mode flags we impose when there is no project tsconfig. */
 const STRICTNESS_CODES = new Set([7005, 7006, 7008, 7019, 7031, 7034, 7053, 2531, 2532, 2533, 2564, 18046, 18047, 18048, 18049]);
@@ -102,7 +104,7 @@ export const typecheckStage: Stage = {
     const findings: Finding[] = [];
     for (const d of diagnostics) {
       if (d.category !== ts.DiagnosticCategory.Error) continue;
-      if (UNRESOLVED_MODULE_CODES.has(d.code) && !ctx.projectRoot) continue;
+      if ((UNRESOLVED_MODULE_CODES.has(d.code) || ENVIRONMENT_CODES.has(d.code)) && !ctx.projectRoot) continue;
       if (isJs && !JS_TRUSTED_CODES.has(d.code)) continue;
       if (isUntypedCallbackParam(program, sourceFile, d)) continue;
       const location = d.start !== undefined ? toLocation(sourceFile, d.start, d.length ?? 0) : undefined;

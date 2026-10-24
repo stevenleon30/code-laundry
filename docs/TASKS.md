@@ -41,9 +41,21 @@
       re-verification of the final code
 - [x] tests: 67 total; deps tests use a fixture provider (CODELAUNDRY_DEPS_FIXTURE)
 
-## M4 — Eval suite
-- [ ] ≥40 labeled cases across all categories + clean controls (for FPR)
-- [ ] runner: precision, recall, FPR, repair success; threshold gate
+## M4 — Eval suite ✅
+- [x] 89 labeled cases in `evals/cases/` (snippet + JSON label each): 74 bad, 15 clean controls,
+      covering hallucinated/typosquatted/removed packages, SQL injection, leaked secrets, missing
+      await, swallowed errors, wrong/invented API usage, bad types, dead code, other security
+      (command injection, path traversal, SSRF, XSS, weak crypto, TLS), and AI slop
+- [x] 16 of them are a **held-out** subset, written without running the tool first and reported
+      separately; the tool is not tuned against them
+- [x] runner (`pnpm evals`): recall, precision (medium+ findings), false-positive rate (clean
+      controls flagged), repair success; per-category table, misses, false positives;
+      `evals/results/latest.json`; exits 1 below `evals/thresholds.json`
+- [x] deps lookups use `evals/deps-fixture.json`, so evals are deterministic and offline
+- First run found 3 real tool gaps (no-unreachable silently disabled by typescript-eslint's
+  preset, an over-broad SQL sink matching axios.get, TODO-implement placeholders) — fixed.
+- Caveat: every case was written by the same author as the rules, so 100% here means
+  "covers what we thought to test". Real AI output samples are the next step for a true signal.
 
 ## M5 — Repair loop
 - [ ] Anthropic client, structured edits, range guard, re-verify, stop conditions

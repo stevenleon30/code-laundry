@@ -1,0 +1,12 @@
+{
+  "id": "ho-sec-execsync",
+  "category": "security",
+  "description": "execSync with concatenated branch name",
+  "expect": [
+    "semgrep/command-injection"
+  ],
+  "allow": [],
+  "repairable": true,
+  "file": "ho-sec-execsync.ts",
+  "holdout": true
+}

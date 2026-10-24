@@ -1,0 +1,13 @@
+{
+  "id": "sqli-knex-raw",
+  "category": "sql-injection",
+  "description": "knex.raw with concatenated route param",
+  "expect": [
+    "semgrep/sql-injection*"
+  ],
+  "repairable": true,
+  "allow": [
+    "semgrep/sql-injection*"
+  ],
+  "file": "sqli-knex-raw.ts"
+}

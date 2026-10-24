@@ -1,0 +1,11 @@
+{
+  "id": "api-array-contains",
+  "category": "wrong-api",
+  "description": "Array has no contains method",
+  "expect": [
+    "tsc/TS2339|tsc/TS2551"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "api-array-contains.ts"
+}

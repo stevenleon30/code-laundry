@@ -1,0 +1,11 @@
+{
+  "id": "api-path-joinsafe",
+  "category": "wrong-api",
+  "description": "Invented path.joinSafe",
+  "expect": [
+    "slop/invented-api"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "api-path-joinsafe.ts"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "clean-config-env",
+  "category": "clean",
+  "description": "Configuration from environment with validation",
+  "expect": [],
+  "repairable": false,
+  "allow": [],
+  "file": "clean-config-env.ts"
+}

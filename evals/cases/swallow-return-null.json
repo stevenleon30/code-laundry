@@ -1,0 +1,11 @@
+{
+  "id": "swallow-return-null",
+  "category": "swallowed-error",
+  "description": "Failure converted to null",
+  "expect": [
+    "slop/error-to-default"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "swallow-return-null.ts"
+}

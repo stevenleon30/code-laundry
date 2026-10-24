@@ -1,0 +1,11 @@
+{
+  "id": "sec-command-injection",
+  "category": "security",
+  "description": "Shell command with interpolated input",
+  "expect": [
+    "semgrep/command-injection"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "sec-command-injection.ts"
+}

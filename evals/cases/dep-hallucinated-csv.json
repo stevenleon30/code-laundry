@@ -1,0 +1,11 @@
+{
+  "id": "dep-hallucinated-csv",
+  "category": "hallucinated-package",
+  "description": "Imports a CSV parser that does not exist on npm",
+  "expect": [
+    "deps/not-found"
+  ],
+  "repairable": false,
+  "allow": [],
+  "file": "dep-hallucinated-csv.ts"
+}

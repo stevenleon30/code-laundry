@@ -1,0 +1,14 @@
+{
+  "id": "dep-typosquat-express",
+  "category": "hallucinated-package",
+  "description": "Typosquat of express",
+  "expect": [
+    "deps/typosquat"
+  ],
+  "repairable": false,
+  "allow": [
+    "deps/low-downloads",
+    "deps/new-package"
+  ],
+  "file": "dep-typosquat-express.ts"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "clean-class-service",
+  "category": "clean",
+  "description": "Service class with dependency injection",
+  "expect": [],
+  "repairable": false,
+  "allow": [],
+  "file": "clean-class-service.ts"
+}

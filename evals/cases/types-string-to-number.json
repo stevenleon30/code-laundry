@@ -1,0 +1,11 @@
+{
+  "id": "types-string-to-number",
+  "category": "bad-types",
+  "description": "String assigned to number",
+  "expect": [
+    "tsc/TS2322"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "types-string-to-number.ts"
+}

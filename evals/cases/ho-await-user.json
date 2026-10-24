@@ -1,0 +1,12 @@
+{
+  "id": "ho-await-user",
+  "category": "missing-await",
+  "description": "Reads a property of an un-awaited promise",
+  "expect": [
+    "tsc/TS2339"
+  ],
+  "allow": [],
+  "repairable": true,
+  "file": "ho-await-user.ts",
+  "holdout": true
+}

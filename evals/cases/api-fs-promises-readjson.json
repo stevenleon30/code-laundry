@@ -1,0 +1,11 @@
+{
+  "id": "api-fs-promises-readjson",
+  "category": "wrong-api",
+  "description": "Invented export from fs/promises",
+  "expect": [
+    "slop/invented-api"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "api-fs-promises-readjson.ts"
+}

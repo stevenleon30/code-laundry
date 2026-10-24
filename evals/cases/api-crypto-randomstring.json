@@ -1,0 +1,11 @@
+{
+  "id": "api-crypto-randomstring",
+  "category": "wrong-api",
+  "description": "Invented crypto.randomString",
+  "expect": [
+    "slop/invented-api"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "api-crypto-randomstring.ts"
+}

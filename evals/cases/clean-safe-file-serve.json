@@ -1,0 +1,9 @@
+{
+  "id": "clean-safe-file-serve",
+  "category": "clean",
+  "description": "Path traversal-safe file serving",
+  "expect": [],
+  "repairable": false,
+  "allow": [],
+  "file": "clean-safe-file-serve.ts"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "ho-swallow-optional-binding",
+  "category": "swallowed-error",
+  "description": "Empty catch without binding",
+  "expect": [
+    "slop/empty-catch"
+  ],
+  "allow": [],
+  "repairable": true,
+  "file": "ho-swallow-optional-binding.ts",
+  "holdout": true
+}

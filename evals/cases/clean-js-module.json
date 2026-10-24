@@ -1,0 +1,9 @@
+{
+  "id": "clean-js-module",
+  "category": "clean",
+  "description": "Plain CommonJS utility module",
+  "expect": [],
+  "repairable": false,
+  "allow": [],
+  "file": "clean-js-module.js"
+}

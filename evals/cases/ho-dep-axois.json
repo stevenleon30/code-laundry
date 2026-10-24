@@ -1,0 +1,12 @@
+{
+  "id": "ho-dep-axois",
+  "category": "hallucinated-package",
+  "description": "Misspelled axios",
+  "expect": [
+    "deps/not-found|deps/typosquat"
+  ],
+  "allow": [],
+  "repairable": false,
+  "file": "ho-dep-axois.ts",
+  "holdout": true
+}

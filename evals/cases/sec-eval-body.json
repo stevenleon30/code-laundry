@@ -1,0 +1,11 @@
+{
+  "id": "sec-eval-body",
+  "category": "security",
+  "description": "eval on request body",
+  "expect": [
+    "eslint/no-eval"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "sec-eval-body.ts"
+}

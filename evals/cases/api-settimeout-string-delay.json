@@ -1,0 +1,11 @@
+{
+  "id": "api-settimeout-string-delay",
+  "category": "wrong-api",
+  "description": "setTimeout delay passed as string",
+  "expect": [
+    "tsc/*|slop/invented-api"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "api-settimeout-string-delay.ts"
+}

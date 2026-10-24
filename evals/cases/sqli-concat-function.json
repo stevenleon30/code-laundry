@@ -1,0 +1,11 @@
+{
+  "id": "sqli-concat-function",
+  "category": "sql-injection",
+  "description": "Function parameter concatenated into SQL",
+  "expect": [
+    "semgrep/sql-injection-string-built"
+  ],
+  "repairable": true,
+  "allow": [],
+  "file": "sqli-concat-function.ts"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "dep-hallucinated-ai-util",
+  "category": "hallucinated-package",
+  "description": "Invented summarization helper package",
+  "expect": [
+    "deps/not-found"
+  ],
+  "repairable": false,
+  "allow": [],
+  "file": "dep-hallucinated-ai-util.ts"
+}
