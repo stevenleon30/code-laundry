@@ -21,7 +21,17 @@ describe("pipeline", () => {
     expect(r.findings).toEqual([]);
     expect(r.cleanedCode).toBe(CLEAN);
     expect(r.diff).toBe("");
-    expect(r.stagesRun.map((s) => s.id)).toEqual(["typescript.detect", "ts.parse", "ts.format", "ts.lint", "ts.typecheck"]);
+    expect(r.stagesRun.map((s) => s.id)).toEqual([
+      "typescript.detect",
+      "ts.parse",
+      "ts.format",
+      "ts.lint",
+      "ts.typecheck",
+      "ts.semgrep",
+      "secrets",
+      "ts.deps",
+      "ts.slop",
+    ]);
   });
 
   it("rejects syntax errors early with a precise location and skips later stages", async () => {

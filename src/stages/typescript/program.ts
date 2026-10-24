@@ -175,3 +175,42 @@ export function toLocation(sf: ts.SourceFile, start: number, length: number) {
   const e = sf.getLineAndCharacterOfPosition(start + Math.max(length, 0));
   return { line: s.line + 1, column: s.character + 1, endLine: e.line + 1, endColumn: e.character + 1 };
 }
+
+/** Deepest node whose span contains `pos`. */
+export function nodeAt(sf: ts.SourceFile, pos: number): ts.Node | undefined {
+  let found: ts.Node | undefined;
+  const visit = (n: ts.Node): void => {
+    if (pos >= n.getStart(sf) && pos < n.getEnd()) {
+      found = n;
+      ts.forEachChild(n, visit);
+    }
+  };
+  visit(sf);
+  return found;
+}
+
+/** `node_modules/@scope/pkg/...` → `@scope/pkg`; `@types/x` → `x`; TS lib files → undefined. */
+export function packageFromPath(fileName: string): { name: string; root: string } | undefined {
+  const norm = fileName.split(path.sep).join("/");
+  const idx = norm.lastIndexOf("/node_modules/");
+  if (idx === -1) return undefined;
+  const rest = norm.slice(idx + "/node_modules/".length).split("/");
+  const name = rest[0]?.startsWith("@") ? `${rest[0]}/${rest[1] ?? ""}` : (rest[0] ?? "");
+  if (!name || name === "typescript") return undefined;
+  const root = norm.slice(0, idx + "/node_modules/".length) + name;
+  if (!name.startsWith("@types/")) return { name, root };
+  const typed = name.slice("@types/".length);
+  return { name: typed.includes("__") ? `@${typed.replace("__", "/")}` : typed, root };
+}
+
+const versionCache = new Map<string, string | undefined>();
+export function packageVersion(root: string): string | undefined {
+  if (!versionCache.has(root)) {
+    try {
+      versionCache.set(root, (JSON.parse(ts.sys.readFile(path.join(root, "package.json")) ?? "{}") as { version?: string }).version);
+    } catch {
+      versionCache.set(root, undefined);
+    }
+  }
+  return versionCache.get(root);
+}

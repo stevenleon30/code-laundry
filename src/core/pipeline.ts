@@ -5,7 +5,7 @@ import { type LaundryConfig, loadConfig, matchesPattern } from "./config.js";
 import { unifiedDiff } from "./diff.js";
 import { Redactor } from "./redact.js";
 import { resolveModule } from "./registry.js";
-import { type Detected, makeFinding, type Stage, type StageContext, type StageKind } from "./stage.js";
+import { type Detected, makeFinding, type Stage, type StageContext, type StageKind, VERIFY_KINDS } from "./stage.js";
 import type { Finding, Language, LaunderResult, Mode, StageRun } from "./types.js";
 import { computeVerdict } from "./verdict.js";
 
@@ -66,73 +66,96 @@ function applyConfig(findings: Finding[], config: LaundryConfig): Finding[] {
     });
 }
 
+interface OneResult {
+  run: StageRun;
+  findings: Finding[];
+  code?: string;
+  fatal: boolean;
+}
+
+async function runOne(stage: Stage, rc: StageRunContext, code: string, allowFix: boolean): Promise<OneResult> {
+  const t = performance.now();
+  const done = (r: Omit<StageRun, "id" | "durationMs">, findings: Finding[] = [], extra: Partial<OneResult> = {}): OneResult => ({
+    run: { id: stage.id, durationMs: Math.round(performance.now() - t), ...r },
+    findings,
+    fatal: false,
+    ...extra,
+  });
+
+  if (!isEnabled(stage, rc.config)) return done({ status: "skipped", reason: "disabled by config", findings: 0, changedCode: false });
+  const avail = await stage.available();
+  if (!avail.ok) {
+    return done({ status: "skipped", reason: avail.reason, findings: 0, changedCode: false }, unavailableFinding(stage, avail.reason, rc.mode));
+  }
+  const ctx: StageContext = {
+    code,
+    filePath: rc.filePath,
+    ...(rc.projectRoot ? { projectRoot: rc.projectRoot } : {}),
+    mode: rc.mode,
+    allowFix: allowFix && stage.canFix,
+    config: rc.config,
+    detected: rc.detected,
+    ...(rc.signal ? { signal: rc.signal } : {}),
+  };
+  try {
+    const out = await stage.run(ctx);
+    for (const s of out.secrets ?? []) rc.redactor.add(s.value, s.rule);
+    const notes = out.notes?.length ? { notes: out.notes } : {};
+    if (out.skipped) {
+      return done({ status: "skipped", reason: out.skipped, findings: 0, changedCode: false, ...notes }, unavailableFinding(stage, out.skipped, rc.mode));
+    }
+    const findings = applyConfig(out.findings, rc.config);
+    const changed = ctx.allowFix && out.code !== undefined && out.code !== code;
+    return done({ status: "ran", findings: findings.length, changedCode: changed, ...notes }, findings, {
+      ...(changed && out.code !== undefined ? { code: out.code } : {}),
+      fatal: Boolean(out.fatal),
+    });
+  } catch (err) {
+    const reason = `stage error: ${(err as Error).message.split("\n")[0]}`;
+    return done({ status: "failed", reason, findings: 0, changedCode: false }, unavailableFinding(stage, reason, rc.mode));
+  }
+}
+
+/** Analysis-only stages after the parse can run concurrently on the same code. */
+const parallelizable = (s: Stage) => !s.canFix && s.kind !== "parse";
+
 /**
- * Run stages in order, threading code through fixing stages. Used for the main
- * pass and (with allowFix=false and verify kinds only) for re-verification.
+ * Run stages in order, threading code through fixing stages. Consecutive
+ * analysis-only stages run in parallel. Used for the main pass and, with
+ * allowFix=false, for re-verification.
  */
-export async function runStages(stages: readonly Stage[], rc: StageRunContext, code: string, allowFix: boolean): Promise<StagesResult> {
+export async function runStages(stages: readonly Stage[], rc: StageRunContext, code: string, allowFix: boolean): Promise<StagesResult & { changedAfterAnalysis: boolean }> {
   const findings: Finding[] = [];
   const stagesRun: StageRun[] = [];
   let current = code;
   let fatal = false;
+  let analysisRan = false;
+  let changedAfterAnalysis = false;
+  const applicable = stages.filter((s) => s.languages.includes(rc.detected.language));
 
-  for (const stage of stages) {
-    if (!stage.languages.includes(rc.detected.language)) continue;
-    const t = performance.now();
-    const record = (r: Omit<StageRun, "id" | "durationMs">) =>
-      stagesRun.push({ id: stage.id, durationMs: Math.round(performance.now() - t), ...r });
+  for (let i = 0; i < applicable.length; ) {
+    const stage = applicable[i] as Stage;
+    const batch = [stage];
+    if (parallelizable(stage)) while (i + batch.length < applicable.length && parallelizable(applicable[i + batch.length] as Stage)) batch.push(applicable[i + batch.length] as Stage);
+    i += batch.length;
 
     if (fatal) {
-      record({ status: "skipped", reason: "not run: input has syntax errors", findings: 0, changedCode: false });
+      for (const s of batch) stagesRun.push({ id: s.id, status: "skipped", reason: "not run: input has syntax errors", durationMs: 0, findings: 0, changedCode: false });
       continue;
     }
-    if (!isEnabled(stage, rc.config)) {
-      record({ status: "skipped", reason: "disabled by config", findings: 0, changedCode: false });
-      continue;
-    }
-    const avail = await stage.available();
-    if (!avail.ok) {
-      record({ status: "skipped", reason: avail.reason, findings: 0, changedCode: false });
-      findings.push(...unavailableFinding(stage, avail.reason, rc.mode));
-      continue;
-    }
-
-    const ctx: StageContext = {
-      code: current,
-      filePath: rc.filePath,
-      ...(rc.projectRoot ? { projectRoot: rc.projectRoot } : {}),
-      mode: rc.mode,
-      allowFix: allowFix && stage.canFix,
-      config: rc.config,
-      detected: rc.detected,
-      ...(rc.signal ? { signal: rc.signal } : {}),
-    };
-    try {
-      const out = await stage.run(ctx);
-      for (const s of out.secrets ?? []) rc.redactor.add(s.value, s.rule);
-      if (out.skipped) {
-        record({ status: "skipped", reason: out.skipped, findings: 0, changedCode: false, ...(out.notes?.length ? { notes: out.notes } : {}) });
-        findings.push(...unavailableFinding(stage, out.skipped, rc.mode));
-        continue;
+    const results = await Promise.all(batch.map((s) => runOne(s, rc, current, allowFix)));
+    for (const [j, r] of results.entries()) {
+      stagesRun.push(r.run);
+      findings.push(...r.findings);
+      if (r.code !== undefined) {
+        current = r.code;
+        if (analysisRan) changedAfterAnalysis = true;
       }
-      const stageFindings = applyConfig(out.findings, rc.config);
-      findings.push(...stageFindings);
-      const changed = ctx.allowFix && out.code !== undefined && out.code !== current;
-      if (changed && out.code !== undefined) current = out.code;
-      record({
-        status: "ran",
-        findings: stageFindings.length,
-        changedCode: changed,
-        ...(out.notes?.length ? { notes: out.notes } : {}),
-      });
-      if (out.fatal) fatal = true;
-    } catch (err) {
-      const reason = `stage error: ${(err as Error).message.split("\n")[0]}`;
-      record({ status: "failed", reason, findings: 0, changedCode: false });
-      findings.push(...unavailableFinding(stage, reason, rc.mode));
+      if (r.fatal) fatal = true;
+      if (r.run.status === "ran" && !(batch[j] as Stage).canFix && (batch[j] as Stage).kind !== "parse") analysisRan = true;
     }
   }
-  return { code: current, findings, stagesRun, fatal };
+  return { code: current, findings, stagesRun, fatal, changedAfterAnalysis };
 }
 
 /** A missing security/deps tool must never look like a clean result in strict mode. */
@@ -200,6 +223,18 @@ export async function prepare(input: LaunderInput): Promise<PreparedRun> {
   };
 }
 
+const VERIFY_KINDS_SET = new Set<StageKind>(VERIFY_KINDS);
+
+/** Run the analysis stages (no fixing) on `code`. Used after fixes and by the repair loop. */
+export function reverify(prep: PreparedRun, code: string): Promise<StagesResult> {
+  return runStages(
+    prep.stages.filter((s) => VERIFY_KINDS_SET.has(s.kind)),
+    prep.rc,
+    code,
+    false,
+  );
+}
+
 export async function launder(input: LaunderInput): Promise<LaunderResult> {
   const t0 = performance.now();
   const prep = await prepare(input);
@@ -207,9 +242,24 @@ export async function launder(input: LaunderInput): Promise<LaunderResult> {
   const allowFix = input.mode !== "check";
 
   const main = await runStages(prep.stages, rc, input.code, allowFix);
-  const findings = main.findings;
+  let findings = main.findings;
   const stagesRun = [prep.detectRun, ...main.stagesRun];
-  const cleanedCode = allowFix ? main.code : input.code;
+  let cleanedCode = allowFix ? main.code : input.code;
+
+  // A fix applied after analysis stages ran makes their locations stale: re-verify the final code.
+  if (allowFix && main.changedAfterAnalysis) {
+    const verify = await reverify(prep, cleanedCode);
+    stagesRun.push(...verify.stagesRun.map((s) => ({ ...s, id: `verify:${s.id}` })));
+    if (verify.fatal) {
+      // Deterministic fixers should never break the code; if one did, keep the input.
+      const fallback = await runStages(prep.stages, rc, input.code, false);
+      cleanedCode = input.code;
+      findings = fallback.findings;
+      stagesRun.push({ id: "laundry.revert", status: "ran", durationMs: 0, findings: 0, changedCode: false, notes: ["autofix produced unparseable code; reverted to input"] });
+    } else {
+      findings = [...main.findings.filter((f) => f.fixed), ...verify.findings];
+    }
+  }
 
   const { verdict, reasons } = computeVerdict(findings, rc.config, input.mode);
   const notRun = stagesRun.filter((s) => s.status !== "ran" && s.reason !== "disabled by config");

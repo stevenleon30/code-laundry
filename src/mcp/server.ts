@@ -5,7 +5,8 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
-import { ConfigError } from "../core/config.js";
+import { ConfigError, loadConfig } from "../core/config.js";
+import { DepsToolResult, runDepsTool } from "../deps/tool.js";
 import { assertAllowedRoot, assertSize, codeFromDiff, InputError } from "../core/input.js";
 import { launder, UnsupportedLanguageError } from "../core/pipeline.js";
 import { Language, LaunderResult, Mode } from "../core/types.js";
@@ -80,6 +81,40 @@ export function createServer(): McpServer {
           ...(projectRoot ? { projectRoot } : {}),
           ...(args.context?.configPath ? { configPath: args.context.configPath } : {}),
         });
+        return jsonResult(result);
+      } catch (err) {
+        return errorResult(err);
+      }
+    },
+  );
+
+  server.registerTool(
+    "check_dependencies",
+    {
+      title: "Check dependencies",
+      description:
+        "Check npm packages before installing them: flags packages that don't exist (hallucinated), typosquats of popular packages, " +
+        "packages npm removed as malicious, known vulnerabilities (OSV), deprecated, very new, or rarely downloaded packages. " +
+        "Pass a package.json (object or string) or a list of imports (\"lodash\", \"lodash@4.17.15\", \"@scope/pkg/sub\").",
+      inputSchema: {
+        packageJson: z.union([z.string(), z.record(z.string(), z.unknown())]).optional(),
+        imports: z.array(z.string()).max(500).optional(),
+        context: z.object({ projectRoot: z.string().optional(), configPath: z.string().optional() }).optional(),
+        mode: Mode.default("check").describe("strict: an unreachable registry or vulnerability database rejects instead of passing."),
+      },
+      outputSchema: DepsToolResult.shape,
+      annotations: { readOnlyHint: true, openWorldHint: true },
+    },
+    async (args) => {
+      try {
+        const projectRoot = args.context?.projectRoot;
+        assertAllowedRoot(projectRoot);
+        const config = await loadConfig({ ...(projectRoot ? { projectRoot } : {}), ...(args.context?.configPath ? { configPath: args.context.configPath } : {}) });
+        const result = await runDepsTool(
+          { ...(args.packageJson !== undefined ? { packageJson: args.packageJson } : {}), ...(args.imports ? { imports: args.imports } : {}), ...(projectRoot ? { projectRoot } : {}) },
+          config,
+          args.mode,
+        );
         return jsonResult(result);
       } catch (err) {
         return errorResult(err);

@@ -1,0 +1,32 @@
+{
+  "packages": {
+    "express": { "latest": "5.1.0", "created": "2010-12-29T19:38:25.450Z", "weeklyDownloads": 40000000 },
+    "lodash": { "latest": "4.17.21", "versions": { "4.17.15": {}, "4.17.21": {} }, "created": "2012-04-23T16:37:11.912Z", "weeklyDownloads": 50000000 },
+    "lodahs": { "latest": "0.0.1-security", "created": "2019-11-25T16:49:21.220Z", "weeklyDownloads": 30 },
+    "react": { "latest": "19.1.0", "created": "2011-10-26T17:46:21.942Z", "weeklyDownloads": 30000000 },
+    "zod": { "latest": "4.1.0", "created": "2020-03-07T20:00:00.000Z", "weeklyDownloads": 30000000 },
+    "request": { "latest": "2.88.2", "versions": { "2.88.2": { "deprecated": "request has been deprecated, see https://github.com/request/request/issues/3142" } }, "created": "2011-01-23T00:00:00.000Z", "weeklyDownloads": 15000000 },
+    "expresss": { "latest": "0.0.1", "created": "2015-01-01T00:00:00.000Z", "weeklyDownloads": 12 },
+    "brand-new-helper": { "latest": "1.0.0", "created": "2099-01-01T00:00:00.000Z", "weeklyDownloads": 3 },
+    "left-pad": { "latest": "1.3.0", "created": "2014-03-26T00:00:00.000Z", "weeklyDownloads": 1000000 },
+    "axios": { "latest": "1.12.0", "created": "2014-08-29T00:00:00.000Z", "weeklyDownloads": 60000000 },
+    "pg": { "latest": "8.16.0", "created": "2010-10-01T00:00:00.000Z", "weeklyDownloads": 8000000 },
+    "jsonwebtoken": { "latest": "9.0.2", "created": "2013-01-01T00:00:00.000Z", "weeklyDownloads": 20000000 },
+    "mysql2": { "latest": "3.14.0", "created": "2014-01-01T00:00:00.000Z", "weeklyDownloads": 4000000 },
+    "node-fetch": { "latest": "3.3.2", "created": "2015-01-27T00:00:00.000Z", "weeklyDownloads": 70000000 },
+    "moment": { "latest": "2.30.1", "created": "2011-10-28T00:00:00.000Z", "weeklyDownloads": 20000000 },
+    "uuid": { "latest": "11.1.0", "created": "2011-03-30T00:00:00.000Z", "weeklyDownloads": 100000000 },
+    "dotenv": { "latest": "17.2.0", "created": "2013-07-11T00:00:00.000Z", "weeklyDownloads": 50000000 },
+    "bcrypt": { "latest": "6.0.0", "created": "2011-01-01T00:00:00.000Z", "weeklyDownloads": 2000000 },
+    "openai": { "latest": "5.20.0", "created": "2020-01-01T00:00:00.000Z", "weeklyDownloads": 8000000 },
+    "@anthropic-ai/sdk": { "latest": "1.2.0", "created": "2023-01-01T00:00:00.000Z", "weeklyDownloads": 3000000 },
+    "mongoose": { "latest": "8.18.0", "created": "2010-12-01T00:00:00.000Z", "weeklyDownloads": 3000000 },
+    "yaml": { "latest": "2.8.0", "created": "2011-01-01T00:00:00.000Z", "weeklyDownloads": 60000000 }
+  },
+  "vulns": {
+    "lodash@4.17.15": [
+      { "id": "GHSA-35jh-r3h4-6jhm", "summary": "Command Injection in lodash", "severity": "high", "fixed": "4.17.21" },
+      { "id": "GHSA-p6mc-m468-83gw", "summary": "Prototype Pollution in lodash", "severity": "high", "fixed": "4.17.19" }
+    ]
+  }
+}

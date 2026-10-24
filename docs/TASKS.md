@@ -18,11 +18,28 @@
   but does not yet force `reject` (the secrets stage that reports it arrives in M3).
 - Diff input: findings cover the whole resulting file, not only the changed lines.
 
-## M3 — Security + dependency stages
-- [ ] semgrep stage + bundled rules (injection, eval, path traversal, weak crypto, SSRF)
-- [ ] secrets: gitleaks if installed + built-in regex/entropy fallback; redaction everywhere
-- [ ] deps: import extraction, npm registry existence/deprecation/age, typosquat, OSV
-- [ ] slop heuristics (AST-based): TODO placeholders, empty/broad catch, console.log, fake data, missing await, invented API (check exports against installed package .d.ts when projectRoot given)
+## M3 — Security + dependency + slop stages ✅
+- [x] `exec.ts`: shell-free subprocess runner, scrubbed env (no API keys passed to tools),
+      PATH lookup without running `--version` (semgrep's version check hangs for minutes offline)
+- [x] ts.semgrep + bundled rules (`rules/semgrep/typescript.yml`): SQL injection (taint +
+      string-built), command injection, path traversal, SSRF, open redirect, XSS, vm exec,
+      weak hash/cipher, password hashing, insecure randomness, TLS off, JWT none, CORS
+- [x] secrets: gitleaks (when installed) + built-in patterns, always both; exact values go
+      to the redactor only. Detected secrets force `reject`.
+- [x] deps: registry existence, removed-as-malicious placeholders, typosquats (vs bundled
+      popular list), deprecation, publish age, weekly downloads, OSV vulns (osv-scanner,
+      falling back to the OSV API), undeclared imports. Unreachable services are reported,
+      never treated as clean; strict mode blocks on registry/OSV gaps.
+- [x] check_dependencies MCP tool (package.json or imports[])
+- [x] slop: truncated code, placeholder comments/values, TODOs, not-implemented stubs,
+      empty/log-only/default-returning catch, swallowed promise rejections, broad try,
+      fake/mock data outside tests, commented-out code, dead branches, localhost URLs,
+      console.log (autofix, except inside catch blocks)
+- [x] invented APIs: type errors that point at a package's declarations become
+      `slop/invented-api` (Node built-ins always; installed packages with projectRoot)
+- [x] pipeline: analysis stages run in parallel; a fix after analysis triggers
+      re-verification of the final code
+- [x] tests: 67 total; deps tests use a fixture provider (CODELAUNDRY_DEPS_FIXTURE)
 
 ## M4 — Eval suite
 - [ ] ≥40 labeled cases across all categories + clean controls (for FPR)
@@ -41,6 +58,14 @@
 - TypeScript is pinned to 6.0.x: TS 7 (native) has no stable JS API, and typescript-eslint supports <6.1.
 - Fixed-finding attribution for ESLint autofix is by rule count (before vs after), so the
   "fixed" flag is exact per rule but not per individual occurrence.
+- OSV in restricted networks: if api.osv.dev is blocked, set CODELAUNDRY_OSV_OFFLINE=1 to use
+  osv-scanner's offline database (~200 MB download once; ~10s per new dependency set).
+- npm download counts need api.npmjs.org; when unreachable the check is reported in notes
+  and does not block, even in strict mode (it's a weak signal).
+- Typosquat detection compares against a hand-curated list of ~400 popular packages.
+- Private packages 404 on the public registry: they're accepted when installed in
+  projectRoot/node_modules, otherwise list them in allowedPackages.
+- Semgrep's taint analysis is intra-procedural (OSS); flows across functions are missed.
 - Legacy `.eslintrc` configs are not supported (ESLint 10 dropped them); such projects get the bundled config.
 - This container lacks **semgrep, gitleaks, osv-scanner, biome**. I'll try `pip install semgrep`
   and fetching gitleaks/osv-scanner binaries; if blocked, those stages report `skipped`

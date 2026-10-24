@@ -41,8 +41,9 @@ Code Laundry catches these before they reach your build, your CI, or your users.
 | Format | Prettier |
 | Lint + autofix | ESLint + typescript-eslint |
 | Type check | TypeScript (`tsc --noEmit`) |
-| Security | Semgrep (bundled rules) + gitleaks |
-| Dependencies | npm registry, OSV, typosquat detection |
+| Security | Semgrep (bundled rules in `rules/semgrep/`) |
+| Secrets | gitleaks + built-in patterns (values are always redacted) |
+| Dependencies | npm registry, OSV (osv-scanner / OSV API), typosquat detection |
 | AI-slop heuristics | AST analysis |
 | Repair (optional) | Claude via the Anthropic API |
 
@@ -192,7 +193,8 @@ The runner reports **precision, recall, false-positive rate, and repair success 
 ### Known limitations
 
 - Detecting invented API calls requires `projectRoot`, because it reads the installed packages' type definitions.
-- The OSV and npm download-count checks need network access to `api.osv.dev` and `api.npmjs.org`.
+- The OSV and npm download-count checks need network access to `api.osv.dev` and `api.npmjs.org`. Behind a restrictive network, set `CODELAUNDRY_OSV_OFFLINE=1` to use osv-scanner's offline database.
+- Semgrep's open-source taint analysis is per-function; data flows across functions are not tracked.
 - TypeScript and JavaScript only in v1.
 
 ## Adding a language
