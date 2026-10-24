@@ -7,9 +7,16 @@
 - [x] stages: detect, ts.parse, ts.format (Prettier), ts.lint (ESLint autofix + type-aware pass), ts.typecheck (TS compiler API)
 - [x] tests: verdict, config, redaction, pipeline (29 tests)
 
-## M2 — MCP wrapper
-- [ ] stdio server; launder_code, check_dependencies (stub until M3), explain_findings
-- [ ] Zod input/output schemas; integration test via SDK client over stdio
+## M2 — MCP wrapper ✅
+- [x] stdio server with launder_code (code **or** single-file unified diff) and explain_findings
+      (deterministic knowledge base, no LLM)
+- [x] check_dependencies is registered in M3 together with its implementation, not as a stub
+- [x] Zod input/output schemas (structuredContent + JSON text); input size cap
+      (CODELAUNDRY_MAX_BYTES) and optional projectRoot allow-list (CODELAUNDRY_ALLOWED_ROOTS)
+- [x] tests: in-memory client for every tool + a real stdio process (38 tests total)
+- Known until M3: a hardcoded secret is redacted from output by the backstop patterns,
+  but does not yet force `reject` (the secrets stage that reports it arrives in M3).
+- Diff input: findings cover the whole resulting file, not only the changed lines.
 
 ## M3 — Security + dependency stages
 - [ ] semgrep stage + bundled rules (injection, eval, path traversal, weak crypto, SSRF)
