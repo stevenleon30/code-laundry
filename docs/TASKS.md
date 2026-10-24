@@ -57,9 +57,23 @@
 - Caveat: every case was written by the same author as the rules, so 100% here means
   "covers what we thought to test". Real AI output samples are the next step for a true signal.
 
-## M5 — Repair loop
-- [ ] Anthropic client, structured edits, range guard, re-verify, stop conditions
-- [ ] tests with a mocked LLM (incl. out-of-range edit rejection, prompt-injection case)
+## M5 — Repair loop ✅
+- [x] `src/repair/llm.ts`: Anthropic client using structured outputs (`beta.messages.parse` +
+      Zod schema of line-range edits), model from `repair.model` / `CODELAUNDRY_MODEL`
+      (default `claude-opus-5-5`), effort from `CODELAUNDRY_EFFORT` (default high),
+      server-side refusal fallback enabled. Injectable client for tests/evals.
+- [x] `src/repair/patch.ts`: edits must sit entirely inside a flagged range padded by
+      `repair.contextLines`; out-of-range or overlapping edits are rejected individually
+- [x] `src/repair/loop.ts`: only excerpts around flagged lines are sent (never the whole file);
+      secrets are never targets and windows are redacted; each candidate is formatted, lint-fixed
+      and re-verified by stages 2–8; kept only if the severity-weighted finding score drops;
+      stops on no improvement, unparseable output, client error, or `maxIterations` (default 3)
+- [x] Not repaired by the LLM: syntax errors, secrets, dependency findings (deterministic verdicts)
+- [x] tests with a fake client (79 total): range guard, injected-import rejection, worse/broken
+      candidates discarded, errors, iteration cap, secret never sent, check mode, no credentials
+- Gap: no live API call has been made from this environment (no credentials here). The code is
+  type-checked against the installed SDK; run `pnpm evals` with ANTHROPIC_API_KEY to measure
+  real repair success.
 
 ## M6 — CLI + GitHub Action + README
 - [ ] `codelaundry check|fix <file>` (+ `--json`, exit codes)

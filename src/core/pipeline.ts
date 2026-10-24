@@ -7,6 +7,7 @@ import { Redactor } from "./redact.js";
 import { resolveModule } from "./registry.js";
 import { type Detected, makeFinding, type Stage, type StageContext, type StageKind, VERIFY_KINDS } from "./stage.js";
 import type { Finding, Language, LaunderResult, Mode, StageRun } from "./types.js";
+import { repairLoop } from "../repair/loop.js";
 import { computeVerdict } from "./verdict.js";
 
 export interface LaunderInput {
@@ -258,6 +259,19 @@ export async function launder(input: LaunderInput): Promise<LaunderResult> {
       stagesRun.push({ id: "laundry.revert", status: "ran", durationMs: 0, findings: 0, changedCode: false, notes: ["autofix produced unparseable code; reverted to input"] });
     } else {
       findings = [...main.findings.filter((f) => f.fixed), ...verify.findings];
+    }
+  }
+
+  if (allowFix) {
+    const repaired = await repairLoop(prep, cleanedCode, findings, {
+      fixers: prep.stages.filter((s) => s.kind === "format" || s.kind === "lint"),
+      runStages: (stages, code, fix) => runStages(stages, rc, code, fix),
+      reverify: (code) => reverify(prep, code),
+    });
+    if (repaired) {
+      cleanedCode = repaired.code;
+      findings = repaired.findings;
+      stagesRun.push(repaired.run);
     }
   }
 

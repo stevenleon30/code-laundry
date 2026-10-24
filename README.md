@@ -91,7 +91,8 @@ To enable the LLM repair step, set:
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
-export CODELAUNDRY_MODEL=claude-sonnet-5-5   # optional; any Claude model ID
+export CODELAUNDRY_MODEL=claude-opus-5-5     # optional; default claude-opus-5-5
+export CODELAUNDRY_EFFORT=high               # optional; low | medium | high | xhigh | max
 ```
 
 Without a key, Code Laundry still runs every deterministic check. The repair stage shows up as skipped.
