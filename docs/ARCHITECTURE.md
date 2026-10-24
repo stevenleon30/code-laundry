@@ -15,20 +15,24 @@ src/
     registry.ts     language -> ordered Stage[]   (the only place languages plug in)
     verdict.ts      pass / fixed / reject from findings + thresholds
     config.ts       .codelaundry.json loader (Zod), defaults, merge
-    workspace.ts    temp dir per run; copies code + resolved project configs
-    exec.ts         safe subprocess wrapper (no shell, timeout, output cap, env scrub)
+    input.ts        diff input, size cap, projectRoot allow-list
+    exec.ts         safe subprocess wrapper (no shell, timeout, output cap, env scrub), temp files for file-only tools
     redact.ts       secret redaction applied to every finding/message/diff
     diff.ts         unified diff (jsdiff)
   stages/
-    shared/         detect, secrets (gitleaks + builtin fallback), repair, sandbox-test (stub)
-    typescript/     parse, format, lint, typecheck, semgrep, deps, slop
+    shared/         secrets (gitleaks + built-in patterns)
+    typescript/     detect, parse, format, lint, typecheck, semgrep, deps, slop
     (python/       future: ruff, mypy, bandit — no core change needed)
   deps/
-    npm-registry.ts existence, publish date, deprecation, typosquat (edit distance vs top-N list)
-    osv.ts          vuln lookup
+    npm.ts          registry / downloads / OSV provider (osv-scanner, OSV API fallback), cached
+    provider.ts     provider interface + JSON fixture provider (tests, evals)
+    check.ts        existence, removed-malicious, typosquat, deprecation, age, downloads, vulns
+    names.ts, popular.ts, tool.ts (check_dependencies)
+  explain/          deterministic explanation knowledge base (explain_findings)
   repair/
-    llm.ts          Anthropic client (model from CODELAUNDRY_MODEL)
+    llm.ts          Anthropic client: structured-output line edits (model from CODELAUNDRY_MODEL)
     patch.ts        range-restricted patch application
+    loop.ts         repair → fix → re-verify → keep-if-better, max N rounds
   mcp/server.ts     stdio MCP server: launder_code, check_dependencies, explain_findings
   cli/index.ts      `codelaundry check|fix <file>`
 evals/
@@ -91,7 +95,7 @@ and medium findings escalate to reject.
 - No API key ⇒ repair stage `skipped` with reason; verdict computed from what remains.
 
 ## Verdict
-Configurable `rejectOn: { severities: ["critical","high"], syntaxError, secret, hallucinatedDep }`.
+Configurable via `thresholds` in `.codelaundry.json` (see README).
 - reject: any unfixed finding matching rejectOn
 - fixed: findings existed and every one at/above the configurable `fixedRequires` severity (default: all) is resolved
 - pass: no findings

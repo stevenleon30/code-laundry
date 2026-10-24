@@ -4,9 +4,9 @@
 
 Code Laundry is an MCP server and CLI that AI coding agents call to check, fix, and sanitize the code they generate before a full build. You submit code as a string, a file, or a diff. You get back cleaned code, a structured report of what was wrong, and one of three verdicts: **pass**, **fixed**, or **reject**.
 
-It runs **deterministic checks first**, using real tools (ESLint, Prettier, `tsc`, Semgrep, gitleaks, OSV). An LLM is used only for repairs those tools can't make automatically, and every LLM edit is checked again before it's accepted.
+It runs **deterministic checks first**, using real tools (TypeScript, ESLint + typescript-eslint, Prettier, Semgrep, gitleaks, osv-scanner, the npm registry). An LLM is used only for repairs those tools can't make, and every LLM edit is checked again before it's accepted.
 
-> **Status: early development (v0.1, pre-release).** The architecture and plan are in [`docs/`](docs/). The sections below describe the intended v1 behaviour. Anything not yet built is marked 🚧. See the [Roadmap](#roadmap).
+> **Status: v0.1.** TypeScript and JavaScript. See [Limitations](#limitations).
 
 ---
 
@@ -14,80 +14,64 @@ It runs **deterministic checks first**, using real tools (ESLint, Prettier, `tsc
 
 AI-generated code fails in predictable ways:
 
-- **Hallucinated packages**: imports that don't exist on npm, or near-miss typosquats
-- **Security holes**: SQL injection, `eval`, path traversal, weak crypto, SSRF
+- **Hallucinated packages**: imports that don't exist on npm, typosquats, packages npm removed as malware
+- **Security holes**: SQL and command injection, `eval`, path traversal, SSRF, XSS, weak crypto
 - **Leaked secrets**: API keys and tokens pasted inline
 - **Silent bugs**: missing `await`, swallowed errors, overly broad `try/catch`
-- **Slop**: placeholder TODOs, mocked data left in, dead code, `console.log` leftovers
-- **Invented APIs**: calls to functions that don't exist in the installed version of a package
-
-Code Laundry catches these before they reach your build, your CI, or your users.
+- **Slop**: truncated output (`// ... rest of the code`), placeholder TODOs, mock data left in, dead code, `console.log`
+- **Invented APIs**: calls to functions that don't exist (`fs.readFileAsync`) or not in the installed version of a package
 
 ## How it works
 
 ```
- code ─► detect ─► parse ─► format ─► lint+fix ─► typecheck ─► security ─► deps ─► slop
-                     │                                                               │
-                     └─ syntax error ⇒ reject                                        ▼
-                                                     ┌──── repair loop (fix/strict) ◄┘
-                                                     │  Claude patches flagged ranges only
-                                                     │  → re-run all checks (max 3 rounds)
-                                                     ▼
-                                       report: verdict + findings + diff
+ code ─► detect ─► parse ─► format ─► lint+fix ─┬► typecheck ─┐
+                     │                           ├► semgrep    ├─► slop ─► repair loop ─► report
+                     └─ syntax error ⇒ reject    ├► secrets    │   (fix)   (fix/strict:
+                                                 └► deps ──────┘            LLM, re-verified)
 ```
 
-| Stage | Tool |
-|---|---|
-| Format | Prettier |
-| Lint + autofix | ESLint + typescript-eslint |
-| Type check | TypeScript (`tsc --noEmit`) |
-| Security | Semgrep (bundled rules in `rules/semgrep/`) |
-| Secrets | gitleaks + built-in patterns (values are always redacted) |
-| Dependencies | npm registry, OSV (osv-scanner / OSV API), typosquat detection |
-| AI-slop heuristics | AST analysis |
-| Repair (optional) | Claude via the Anthropic API |
+| Stage | Tool | Fixes |
+|---|---|---|
+| Parse | TypeScript parser | |
+| Format | Prettier (project config if present) | ✓ |
+| Lint | ESLint + typescript-eslint, including type-aware rules such as `no-floating-promises` (project flat config if present) | ✓ |
+| Type check | TypeScript compiler (project `tsconfig.json` if present) | |
+| Security | Semgrep with bundled rules ([`rules/semgrep/`](rules/semgrep/typescript.yml)) | |
+| Secrets | gitleaks + built-in patterns; values are always redacted | |
+| Dependencies | npm registry, OSV (osv-scanner, falling back to the OSV API), typosquat list | |
+| AI slop | AST heuristics; type errors that point at a package's own declarations become `slop/invented-api` | `console.log` |
+| Repair | Claude, structured line-range edits, only inside flagged ranges | ✓ |
 
-Each stage is a pluggable module behind a common interface. If a tool isn't installed, its stage is reported as **skipped, with the reason**. Stages are never skipped silently.
+- **Speed.** ESLint, Prettier and TypeScript run in-process and stay warm in the MCP server. Analysis stages run in parallel. A typical check takes 2–3 s, most of it Semgrep.
+- **No silent skips.** If a tool isn't installed or a service can't be reached, `stagesRun` says so, with the reason. In `strict` mode, a security or dependency check that didn't run rejects the code.
 
 ### Verdicts
 
 | Verdict | Meaning |
 |---|---|
-| ✅ `pass` | No issues found |
-| 🔧 `fixed` | Issues found, and all of them were resolved |
-| ⛔ `reject` | Any of: an unfixed critical/high finding, a syntax error, a detected secret, or a hallucinated dependency |
+| ✅ `pass` | Nothing blocking was found. Unfixed low/medium findings are returned as warnings. |
+| 🔧 `fixed` | Issues were found and nothing blocking remains. Use `cleanedCode`. |
+| ⛔ `reject` | Any of: an unfixed critical/high finding, a syntax error, a hardcoded secret, or a hallucinated/malicious dependency |
 
-Thresholds are configurable.
+All of these are configurable (see [Configuration](#configuration)). In `strict` mode, medium findings also reject.
 
-## MCP tools
-
-| Tool | Input | Output |
-|---|---|---|
-| `launder_code` | `code`, `language`, `filename?`, `context?: { projectRoot?, configPath? }`, `mode: "check" \| "fix" \| "strict"` | `{ verdict, cleanedCode, findings[], diff, stagesRun[], durationMs }` |
-| `check_dependencies` | `packageJson` or `imports[]` | Hallucinated, typosquatted, vulnerable, and deprecated packages |
-| `explain_findings` | `findings` | Plain-language explanations and fix guidance for the calling agent |
-
-**Modes**
-
-- `check`: report only, code is not modified
-- `fix`: tool autofixes, plus LLM repair of whatever remains
-- `strict`: like `fix`, but a missing security tool or a medium-severity finding also leads to `reject`
-
-## Installation 🚧
+## Installation
 
 Requirements:
 
 - Node 20+ and pnpm
-- Optional, but recommended for full coverage: [Semgrep](https://semgrep.dev/docs/getting-started/), [gitleaks](https://github.com/gitleaks/gitleaks), and [osv-scanner](https://github.com/google/osv-scanner)
+- Strongly recommended, otherwise the related stages report themselves as skipped:
+  - [Semgrep](https://semgrep.dev/docs/getting-started/) (`pip install semgrep`)
+  - [gitleaks](https://github.com/gitleaks/gitleaks)
+  - [osv-scanner](https://github.com/google/osv-scanner)
 
 ```bash
 git clone https://github.com/stevenleon30/code-laundry.git
 cd code-laundry
-pnpm install
-pnpm build
+pnpm install        # also builds dist/
 ```
 
-To enable the LLM repair step, set:
+Optional LLM repair (fix/strict modes):
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
@@ -95,15 +79,15 @@ export CODELAUNDRY_MODEL=claude-opus-5-5     # optional; default claude-opus-5-5
 export CODELAUNDRY_EFFORT=high               # optional; low | medium | high | xhigh | max
 ```
 
-Without a key, Code Laundry still runs every deterministic check. The repair stage shows up as skipped.
+Without a key, every deterministic check still runs, and the repair stage reports `skipped`.
 
-## Use with Claude Code 🚧
+## Use with Claude Code
 
 ```bash
 claude mcp add code-laundry -- node /absolute/path/to/code-laundry/dist/mcp/server.js
 ```
 
-Or add it to `.mcp.json` in your project:
+Or commit a `.mcp.json` in your project:
 
 ```json
 {
@@ -117,7 +101,11 @@ Or add it to `.mcp.json` in your project:
 }
 ```
 
-## Use with Claude Desktop 🚧
+To make the agent use it, add a line like this to your `CLAUDE.md`:
+
+> Before writing generated code to disk, call `launder_code` with `mode: "fix"` and `context.projectRoot` set to this repo. Use `cleanedCode`; if the verdict is `reject`, fix the findings and call it again. Call `check_dependencies` before adding any package.
+
+## Use with Claude Desktop
 
 Add this to `claude_desktop_config.json`:
 
@@ -136,80 +124,184 @@ Add this to `claude_desktop_config.json`:
 }
 ```
 
-## CLI 🚧
+Claude Desktop starts servers with a minimal `PATH`. If Semgrep or gitleaks show as skipped, point to them explicitly with `"CODELAUNDRY_SEMGREP": "/path/to/semgrep"` and `"CODELAUNDRY_GITLEAKS": "/path/to/gitleaks"` in `env`.
 
-```bash
-codelaundry check src/handler.ts          # report only
-codelaundry fix src/handler.ts            # autofix + repair, writes the cleaned file
-codelaundry check src/handler.ts --json   # machine-readable report
-```
+## MCP tools
 
-Exit codes: `0` for pass or fixed, `1` for reject, `2` for a usage or internal error.
+### `launder_code`
 
-## Configuration
+| Input | |
+|---|---|
+| `code` or `diff` | Full source, or a unified diff for one file. A diff is applied to `projectRoot/filename`, or to an empty file when creating one. |
+| `language?` | `typescript` \| `javascript`. Detected from the filename or content if omitted. |
+| `filename?` | Path relative to `projectRoot`. Selects the parser and the project config that applies. |
+| `context?` | `{ projectRoot?, configPath? }`. `projectRoot` enables your tsconfig, ESLint and Prettier configs, `.codelaundry.json`, installed package types, and the undeclared-import check. |
+| `mode` | `check` (default; report only) \| `fix` \| `strict` |
 
-Put a `.codelaundry.json` file at your project root. It is validated with Zod.
+Returns `{ verdict, verdictReasons, language, cleanedCode, findings[], diff, stagesRun[], durationMs }`. Each finding has:
 
 ```json
 {
-  "stages": { "ts.semgrep": true, "repair": true },
-  "thresholds": { "rejectOn": ["critical", "high"] },
-  "ignoreRules": ["slop/console-log"],
-  "allowedPackages": ["@my-org/*"],
-  "repair": { "maxIterations": 3 },
-  "deps": { "minWeeklyDownloads": 500, "minAgeDays": 30 }
+  "ruleId": "semgrep/sql-injection",
+  "source": "semgrep",
+  "category": "security",
+  "severity": "critical",
+  "message": "User-controlled data flows into a SQL query string. ...",
+  "location": { "line": 8, "column": 35, "endLine": 8, "endColumn": 90 },
+  "fixable": false,
+  "fixed": false,
+  "snippet": "..."
 }
 ```
 
-If you pass `projectRoot`, Code Laundry also reads your `tsconfig.json`, ESLint config, and Prettier config, so its checks follow your project's conventions.
+### `check_dependencies`
+
+Input is `{ packageJson }` (object or string) or `{ imports: ["lodash", "lodash@4.17.15", "@scope/pkg/sub"] }`. It flags:
+
+- packages that don't exist, or that npm replaced with a security placeholder
+- typosquats of popular packages
+- known vulnerabilities, with the version to upgrade to
+- deprecated, very new, or rarely downloaded packages
+- imports missing from `package.json`
+
+### `explain_findings`
+
+Input is `{ findings }`. Returns plain-language explanations and concrete fix guidance, blocking findings first. It is deterministic; no LLM is called.
+
+## CLI
+
+```bash
+codelaundry check src/handler.ts          # report only
+codelaundry fix src/handler.ts            # apply fixes (and LLM repair if configured), write the file
+codelaundry fix src/handler.ts --stdout   # print cleaned code instead
+cat gen.ts | codelaundry check - --filename gen.ts
+codelaundry deps                          # check ./package.json
+codelaundry deps axois lodash@4.17.15     # check specific packages
+```
+
+Options: `--strict`, `--project <dir>` (default: nearest `package.json`), `--no-project`, `--config <file>`, `--diff`, `--json`.
+
+Exit codes: `0` for pass or fixed, `1` for reject, `2` for a usage or internal error. `fix` never writes a file that contained a secret: the cleaned code has the secret redacted, and writing it would break the file.
+
+During development, use `pnpm cli check <file>` and `pnpm mcp`.
+
+## Configuration
+
+Put a `.codelaundry.json` file at your project root. It is validated with Zod, and unknown keys are errors.
+
+```json
+{
+  "stages": { "ts.semgrep": true, "ts.deps": true, "repair": true },
+  "thresholds": {
+    "rejectOn": ["critical", "high"],
+    "strictRejectOn": ["medium"],
+    "rejectOnSyntaxError": true,
+    "rejectOnSecret": true,
+    "rejectOnHallucinatedDependency": true
+  },
+  "ignoreRules": ["slop/console-log", "eslint/@typescript-eslint/no-explicit-any"],
+  "severityOverrides": { "slop/todo": "medium" },
+  "allowedPackages": ["@my-org/*"],
+  "repair": { "maxIterations": 3, "contextLines": 5, "model": "claude-opus-5-5" },
+  "deps": { "minWeeklyDownloads": 500, "minAgeDays": 30 },
+  "useProjectConfigs": true
+}
+```
+
+Stage ids: `ts.parse`, `ts.format`, `ts.lint`, `ts.typecheck`, `ts.semgrep`, `secrets`, `ts.deps`, `ts.slop`, `repair`.
+
+| Environment variable | Purpose |
+|---|---|
+| `ANTHROPIC_API_KEY` | Enables LLM repair |
+| `CODELAUNDRY_MODEL`, `CODELAUNDRY_EFFORT` | Repair model and effort |
+| `CODELAUNDRY_SEMGREP`, `CODELAUNDRY_GITLEAKS`, `CODELAUNDRY_OSV_SCANNER` | Explicit tool paths |
+| `CODELAUNDRY_OSV_OFFLINE=1` | Use osv-scanner's offline database (when `api.osv.dev` is blocked; ~200 MB download once) |
+| `CODELAUNDRY_NPM_REGISTRY` | Registry URL (default `https://registry.npmjs.org`) |
+| `CODELAUNDRY_ALLOWED_ROOTS` | Restrict which `projectRoot`s callers may use (path-list) |
+| `CODELAUNDRY_MAX_BYTES` | Input size limit (default 1 MB) |
+| `CODELAUNDRY_DEPS_FIXTURE` | Serve dependency data from a JSON fixture (tests and evals) |
 
 ## Safety
 
-- **Submitted code is never executed.** It is only parsed and analysed. A test-run stage would be opt-in and run only in a network-less, resource-limited container; it is a stub in v1.
-- **Secrets are never returned or logged.** Detected secret values are redacted from findings, diffs, and cleaned code.
-- **Submitted code is treated as untrusted data.** Instructions hidden in comments or strings are ignored. The LLM receives the code as clearly delimited data and must reply with structured edits.
-- **The LLM's edits are restricted.** Any edit outside a flagged line range is rejected, and every repair is re-verified by the deterministic stages.
-- **Tools run in a sandboxed way.** Subprocesses use no shell, have timeouts, and run in a temporary per-run workspace.
+- **Submitted code is never executed.**
+  - It is parsed and analysed in memory.
+  - Semgrep and gitleaks read a copy in a private temporary directory, which is deleted afterwards.
+  - The test-run stage is not implemented in v1. If added, it will be opt-in and run only in a network-less, resource-limited container.
+- **Secrets are never returned or sent anywhere.**
+  - Detected secret values are redacted from findings, messages, diffs and `cleanedCode`.
+  - Secrets are never included in what is sent to the LLM.
+  - External tools run without your API keys in their environment.
+- **Submitted code is treated as untrusted data.**
+  - Instructions in comments or strings have no effect on the deterministic stages.
+  - The LLM gets the code inside `<untrusted_code>` delimiters, is told to ignore embedded instructions, and can only answer with schema-validated line edits.
+- **LLM edits are restricted.**
+  - Edits outside the flagged lines (plus `repair.contextLines` of context) are rejected.
+  - Each candidate is re-verified by all deterministic stages and kept only if findings decrease.
+  - The loop runs at most 3 rounds.
+- **Project configs are executed.** With `projectRoot`, ESLint and Prettier configs from that project are loaded, and they are JavaScript. Only point Code Laundry at projects you trust, and use `CODELAUNDRY_ALLOWED_ROOTS` to restrict callers.
 
-## Evals 🚧
+## Evals
 
-`evals/` holds a labeled golden set of 40+ bad AI-generated snippets, plus clean controls. It covers hallucinated packages, SQL injection, leaked keys, missing `await`, swallowed errors, wrong API usage, bad types, and dead code.
+[`evals/`](evals/) holds 89 labeled cases: 74 bad AI-style snippets and 15 clean controls. Each case is a snippet plus a JSON file listing the findings expected for it.
+
+| Category | Cases |
+|---|---|
+| Security (command injection, path traversal, SSRF, XSS, weak crypto, TLS) | 11 |
+| Wrong/invented API usage | 9 |
+| Hallucinated, typosquatted or removed packages | 8 |
+| SQL injection | 7 |
+| Leaked secrets | 7 |
+| Missing `await` | 7 |
+| Bad types | 7 |
+| AI slop | 7 |
+| Swallowed errors | 6 |
+| Dead code | 5 |
 
 ```bash
-pnpm evals
+pnpm evals               # detection + repair
+pnpm evals --no-repair   # detection only
+pnpm evals --filter sqli
 ```
 
-The runner reports **precision, recall, false-positive rate, and repair success rate**. A GitHub Action runs it on every PR and fails if recall drops below the configured threshold.
+The runner reports **recall**, **precision** (medium+ findings), the **false-positive rate** on clean controls, and the **repair success rate**. It fails below the thresholds in [`evals/thresholds.json`](evals/thresholds.json). Dependency lookups use a recorded fixture, so results are deterministic.
 
-## Roadmap
+The [GitHub Action](.github/workflows/evals.yml) runs type-checking, unit tests and detection evals on every PR. LLM repair evals call the API for every repairable case, so they run only on manual dispatch with an `ANTHROPIC_API_KEY` secret.
 
-- [ ] **M1**: Pipeline core with format, lint, and type-check stages
-- [ ] **M2**: MCP server (stdio)
-- [ ] **M3**: Security, secrets, dependency, and AI-slop stages
-- [ ] **M4**: Eval suite and metrics
-- [ ] **M5**: LLM repair loop with range-restricted patches and re-verification
-- [ ] **M6**: CLI, GitHub Action, packaging
-- [ ] **Later**: Python support (ruff, mypy, bandit), sandboxed test-run stage, HTTP transport
+The current detection results are 100% recall, 100% precision and a 0% false-positive rate, including the 16-case held-out subset. **Read that with care:** the same author wrote the rules and the cases, so it shows coverage of the anticipated failure modes, not real-world accuracy. A corpus of real agent output is the next step.
 
-### Known limitations
+## Limitations
 
-- Detecting invented API calls requires `projectRoot`, because it reads the installed packages' type definitions.
-- The OSV and npm download-count checks need network access to `api.osv.dev` and `api.npmjs.org`. Behind a restrictive network, set `CODELAUNDRY_OSV_OFFLINE=1` to use osv-scanner's offline database.
-- Semgrep's open-source taint analysis is per-function; data flows across functions are not tracked.
-- TypeScript and JavaScript only in v1.
+- **TypeScript/JavaScript only** in v1. See [Adding a language](#adding-a-language).
+- **Invented APIs in third-party packages** are detected only with `projectRoot`, because the installed type declarations are needed. Node built-ins are always checked.
+- **Semgrep's open-source taint analysis is per-function.** Flows across functions or files are missed.
+- **Typosquat detection** compares against a hand-curated list of about 400 popular packages.
+- **Private packages** 404 on the public registry. They are accepted when installed in `projectRoot/node_modules`; otherwise add them to `allowedPackages`.
+- **Download counts** come from `api.npmjs.org`. If it's unreachable, the check is noted and never blocks, because it is a weak signal.
+- **Diff input** produces findings for the whole resulting file, not only the changed lines.
+- **ESLint 10 dropped legacy `.eslintrc`.** Such projects get the bundled config.
+- **Fixed-finding attribution** after ESLint autofix or LLM repair is counted per rule, not per occurrence.
 
 ## Adding a language
 
-The core is language-agnostic. To add Python, for example:
+The core is language-agnostic. A language is a `LanguageModule` (detection plus an ordered list of `Stage`s) registered in [`src/core/registry.ts`](src/core/registry.ts). For Python:
 
-1. Write stage modules under `src/stages/python/` (ruff, mypy, bandit, PyPI checks).
-2. Register them in `src/core/registry.ts`.
+1. Add `src/stages/python/` with `ruff format`, `ruff check --fix`, `mypy`, `bandit`, a Semgrep Python ruleset, and a PyPI dependency provider.
+2. Register the module.
 
-The pipeline, verdict logic, repair loop, MCP server, and CLI don't change. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+The pipeline, verdict logic, repair loop, MCP server, CLI and eval runner don't change. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+## Development
+
+```bash
+pnpm test        # unit and integration tests (vitest)
+pnpm typecheck
+pnpm evals
+pnpm build
+```
 
 ## Contributing
 
-Issues and PRs are welcome. Every new detection should come with eval cases in `evals/cases/`, so recall and false-positive rate stay measurable.
+Issues and PRs are welcome. Every new detection should come with eval cases in `evals/cases/`, so that recall and false-positive rate stay measurable. Fake credentials go in [`evals/synthetic-secrets.ts`](evals/synthetic-secrets.ts) and are referenced as `__SECRET_NAME__`, so no secret-shaped literal is committed.
 
 ## License
 

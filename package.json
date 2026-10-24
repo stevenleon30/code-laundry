@@ -21,7 +21,8 @@
     "test": "vitest run",
     "evals": "tsx evals/run.ts",
     "mcp": "tsx src/mcp/server.ts",
-    "cli": "tsx src/cli/index.ts"
+    "cli": "tsx src/cli/index.ts",
+    "prepare": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.2.0",
@@ -40,5 +41,19 @@
     "@types/semver": "^7.8.0",
     "tsx": "^4.23.15",
     "vitest": "^5.0.5"
-  }
+  },
+  "packageManager": "pnpm@10.28.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stevenleon30/code-laundry.git"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai-agents",
+    "code-quality",
+    "static-analysis",
+    "security",
+    "linter"
+  ]
 }

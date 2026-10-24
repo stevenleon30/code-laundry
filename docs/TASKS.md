@@ -75,10 +75,17 @@
   type-checked against the installed SDK; run `pnpm evals` with ANTHROPIC_API_KEY to measure
   real repair success.
 
-## M6 — CLI + GitHub Action + README
-- [ ] `codelaundry check|fix <file>` (+ `--json`, exit codes)
-- [ ] .github/workflows/evals.yml (installs semgrep/gitleaks/osv-scanner, runs evals)
-- [ ] README with Claude Code + Claude Desktop MCP config
+## M6 — CLI + GitHub Action + README ✅
+- [x] `codelaundry check|fix <file|->`, `codelaundry deps [package.json|names...]`;
+      `--strict --project --no-project --config --filename --stdout --diff --json`;
+      exit codes 0/1/2; `fix` refuses to write files that contained a secret (redacted output)
+- [x] `.github/workflows/evals.yml`: typecheck, tests, detection evals on every PR (pinned
+      semgrep 1.182.1, gitleaks 8.30.1); LLM repair evals only on manual dispatch
+- [x] README: install, Claude Code + Claude Desktop MCP config, tools, CLI, config, safety,
+      evals, limitations; MIT LICENSE
+- [x] tests: 86 total
+- Not done: npm publishing (install is from git for now); the sandboxed test-run stage
+  (stubbed per spec, not implemented); Python support.
 
 ## Known gaps / environment notes
 - TypeScript is pinned to 6.0.x: TS 7 (native) has no stable JS API, and typescript-eslint supports <6.1.

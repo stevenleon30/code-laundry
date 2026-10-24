@@ -1,0 +1,80 @@
+name: tests and evals
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      repair:
+        description: "Also measure LLM repair success (needs the ANTHROPIC_API_KEY secret; calls the API for every repairable case)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: evals-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache: false
+
+      # Versions pinned to the ones the bundled rules and evals were validated with.
+      - name: Install analysis tools
+        run: |
+          pip install semgrep==1.182.1
+          go install github.com/zricethezav/gitleaks/v8@v8.30.1
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+
+      - run: pnpm test
+
+      # Detection metrics on every PR; fails if recall/precision/FPR fall below evals/thresholds.json.
+      # Dependency lookups use evals/deps-fixture.json, so this job needs no network access to npm/OSV.
+      - name: Evals (detection)
+        if: ${{ !inputs.repair }}
+        run: pnpm evals --no-repair
+
+      - name: Evals (detection + LLM repair)
+        if: ${{ inputs.repair }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::ANTHROPIC_API_KEY secret is not set"
+            exit 1
+          fi
+          pnpm evals
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: evals/results/latest.json
+          if-no-files-found: ignore
