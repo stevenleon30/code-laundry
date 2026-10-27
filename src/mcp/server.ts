@@ -3,6 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { realpathSync } from "node:fs";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { ConfigError, loadConfig } from "../core/config.js";
@@ -12,7 +13,8 @@ import { launder, UnsupportedLanguageError } from "../core/pipeline.js";
 import { Language, LaunderResult, Mode } from "../core/types.js";
 import { ExplainInputFinding, ExplainResult, explainFindings } from "../explain/explain.js";
 
-export const VERSION = "0.1.0";
+// Resolved at runtime so the published package, CLI and MCP server always report the same version.
+export const VERSION = (createRequire(import.meta.url)("../../package.json") as { version: string }).version;
 
 const LaunderInputShape = {
   code: z.string().optional().describe("Full source code to check. Provide exactly one of `code` or `diff`."),
@@ -138,7 +140,7 @@ export function createServer(): McpServer {
   return server;
 }
 
-async function main(): Promise<void> {
+export async function startStdioServer(): Promise<void> {
   const server = createServer();
   await server.connect(new StdioServerTransport());
   // stdout carries the protocol; diagnostics go to stderr only, and never include submitted code.
@@ -154,7 +156,7 @@ const invokedDirectly = (() => {
 })();
 
 if (invokedDirectly) {
-  main().catch((err: unknown) => {
+  startStdioServer().catch((err: unknown) => {
     process.stderr.write(`fatal: ${(err as Error).message}\n`);
     process.exit(1);
   });

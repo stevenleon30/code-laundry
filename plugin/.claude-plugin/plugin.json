@@ -1,0 +1,34 @@
+{
+  "name": "code-laundry",
+  "displayName": "Code Laundry",
+  "version": "0.1.0",
+  "description": "Checks AI-generated TypeScript/JavaScript before it's saved or committed: syntax, formatting, lint, types, security (Semgrep), hardcoded secrets, hallucinated or vulnerable npm packages, and AI slop. Returns pass/fixed/reject with cleaned code.",
+  "author": {
+    "name": "stevenleon30",
+    "url": "https://github.com/stevenleon30"
+  },
+  "homepage": "https://github.com/stevenleon30/code-laundry#readme",
+  "repository": "https://github.com/stevenleon30/code-laundry",
+  "license": "MIT",
+  "keywords": [
+    "code-quality",
+    "security",
+    "static-analysis",
+    "typescript",
+    "javascript",
+    "dependencies",
+    "secrets"
+  ],
+  "documentationUrl": "https://github.com/stevenleon30/code-laundry#readme",
+  "supportUrl": "https://github.com/stevenleon30/code-laundry/issues",
+  "privacyPolicyUrl": "https://github.com/stevenleon30/code-laundry/blob/main/PRIVACY.md",
+  "userConfig": {
+    "anthropic_api_key": {
+      "type": "string",
+      "title": "Anthropic API key (optional)",
+      "description": "Enables LLM repair of findings the deterministic tools can't fix. Leave empty to run only local checks; nothing is sent to Anthropic then.",
+      "sensitive": true,
+      "default": ""
+    }
+  }
+}

@@ -87,6 +87,18 @@
 - Not done: npm publishing (install is from git for now); the sandboxed test-run stage
   (stubbed per spec, not implemented); Python support.
 
+## M7 — Packaging ✅ (publishing pending)
+- [x] npm package `code-laundry`: single `code-laundry` bin (`check|fix|deps|mcp`), library entry,
+      72.9 kB tarball (dist + rules, no sources or maps), provenance-enabled publish workflow on `v*` tags
+- [x] Claude Code plugin in `plugin/`: MCP server via pinned `npx -y code-laundry@<version> mcp`,
+      skills `launder-code` and `vet-dependencies`, optional sensitive `anthropic_api_key` userConfig,
+      README with data disclosure, LICENSE; repo-root marketplace; PRIVACY.md
+- [x] `pnpm version` re-pins the plugin; a test fails if plugin and package versions drift
+- [x] verified: `claude plugin validate` passes (plugin and marketplace); packed tarball installs,
+      CLI fixes files, `npx --package=<tarball> code-laundry mcp` serves all three tools
+- Pending (needs the maintainer): `npm publish` (NPM_TOKEN), plugin icon, local plugin install
+  test, directory submission
+
 ## Known gaps / environment notes
 - TypeScript is pinned to 6.0.x: TS 7 (native) has no stable JS API, and typescript-eslint supports <6.1.
 - Fixed-finding attribution for ESLint autofix is by rule count (before vs after), so the

@@ -1,0 +1,15 @@
+{
+  "name": "code-laundry",
+  "description": "Code Laundry: checks AI-generated TypeScript/JavaScript before you build or commit it.",
+  "owner": {
+    "name": "stevenleon30",
+    "url": "https://github.com/stevenleon30"
+  },
+  "plugins": [
+    {
+      "name": "code-laundry",
+      "source": "./plugin",
+      "description": "Checks AI-generated TypeScript/JavaScript for security issues, secrets, hallucinated packages and AI slop, and fixes what it safely can."
+    }
+  ]
+}

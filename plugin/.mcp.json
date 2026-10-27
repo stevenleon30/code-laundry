@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "code-laundry": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "code-laundry@0.1.0",
+        "mcp"
+      ],
+      "env": {
+        "ANTHROPIC_API_KEY": "${user_config.anthropic_api_key}"
+      }
+    }
+  }
+}

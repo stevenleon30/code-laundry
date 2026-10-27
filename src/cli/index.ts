@@ -9,14 +9,15 @@ import { assertSize, InputError } from "../core/input.js";
 import { launder, UnsupportedLanguageError } from "../core/pipeline.js";
 import { type Finding, type LaunderResult, type Mode, severityRank } from "../core/types.js";
 import { runDepsTool } from "../deps/tool.js";
-import { VERSION } from "../mcp/server.js";
+import { startStdioServer, VERSION } from "../mcp/server.js";
 
-const USAGE = `codelaundry ${VERSION}: check and clean AI-generated code
+const USAGE = `code-laundry ${VERSION}: check and clean AI-generated code
 
 Usage:
-  codelaundry check <file|->      report findings, change nothing
-  codelaundry fix <file|->        apply fixes and write the file back
-  codelaundry deps [package.json | <name>[@version]...]
+  code-laundry mcp                start the MCP server on stdio
+  code-laundry check <file|->     report findings, change nothing
+  code-laundry fix <file|->       apply fixes and write the file back
+  code-laundry deps [package.json | <name>[@version]...]
                                   check packages for hallucinations, typosquats, CVEs
 
 Options:
@@ -164,6 +165,11 @@ export async function main(argv: string[]): Promise<number> {
     console.log(USAGE);
     return values.help ? 0 : 2;
   }
+  if (cmd === "mcp") {
+    // Runs until stdin closes; the process is kept alive by the transport.
+    await startStdioServer();
+    return -1;
+  }
   try {
     if (cmd === "check" || cmd === "fix") {
       if (rest.length !== 1 || !rest[0]) throw new InputError(`${cmd} takes exactly one file (or - for stdin)`);
@@ -188,5 +194,13 @@ const invokedDirectly = (() => {
 })();
 
 if (invokedDirectly) {
-  main(process.argv.slice(2)).then((code) => process.exit(code));
+  main(process.argv.slice(2)).then(
+    (code) => {
+      if (code >= 0) process.exit(code);
+    },
+    (err: unknown) => {
+      process.stderr.write(`fatal: ${(err as Error).message}\n`);
+      process.exit(2);
+    },
+  );
 }

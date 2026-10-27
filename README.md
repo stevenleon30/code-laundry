@@ -7,6 +7,8 @@ Code Laundry is an MCP server and CLI that AI coding agents call to check, fix, 
 It runs **deterministic checks first**, using real tools (TypeScript, ESLint + typescript-eslint, Prettier, Semgrep, gitleaks, osv-scanner, the npm registry). An LLM is used only for repairs those tools can't make, and every LLM edit is checked again before it's accepted.
 
 > **Status: v0.1.** TypeScript and JavaScript. See [Limitations](#limitations).
+>
+> **Not yet on npm.** The `npx` and plugin installs below work once `code-laundry@0.1.0` is published; until then, install [from source](#from-source).
 
 ---
 
@@ -57,19 +59,28 @@ All of these are configurable (see [Configuration](#configuration)). In `strict`
 
 ## Installation
 
-Requirements:
+### Claude Code plugin (recommended)
 
-- Node 20+ and pnpm
-- Strongly recommended, otherwise the related stages report themselves as skipped:
-  - [Semgrep](https://semgrep.dev/docs/getting-started/) (`pip install semgrep`)
-  - [gitleaks](https://github.com/gitleaks/gitleaks)
-  - [osv-scanner](https://github.com/google/osv-scanner)
+```
+/plugin install code-laundry --marketplace stevenleon30/code-laundry
+```
+
+This adds the MCP server and two skills that tell Claude when to use it: check finished TS/JS changes, and vet npm packages before installing them. To enable LLM repair, set the optional Anthropic API key in the plugin's settings. See [`plugin/README.md`](plugin/README.md).
+
+### npm
+
+Requires Node 20+.
 
 ```bash
-git clone https://github.com/stevenleon30/code-laundry.git
-cd code-laundry
-pnpm install        # also builds dist/
+npx code-laundry check src/handler.ts      # run without installing
+npm install -g code-laundry                 # or install the code-laundry command
 ```
+
+Strongly recommended, otherwise the related stages report themselves as skipped:
+
+- [Semgrep](https://semgrep.dev/docs/getting-started/) (`pip install semgrep`)
+- [gitleaks](https://github.com/gitleaks/gitleaks)
+- [osv-scanner](https://github.com/google/osv-scanner)
 
 Optional LLM repair (fix/strict modes):
 
@@ -81,10 +92,18 @@ export CODELAUNDRY_EFFORT=high               # optional; low | medium | high | x
 
 Without a key, every deterministic check still runs, and the repair stage reports `skipped`.
 
-## Use with Claude Code
+### From source
 
 ```bash
-claude mcp add code-laundry -- node /absolute/path/to/code-laundry/dist/mcp/server.js
+git clone https://github.com/stevenleon30/code-laundry.git
+cd code-laundry
+pnpm install        # also builds dist/
+```
+
+## Use with Claude Code (without the plugin)
+
+```bash
+claude mcp add code-laundry -- npx -y code-laundry@0.1.0 mcp
 ```
 
 Or commit a `.mcp.json` in your project:
@@ -93,15 +112,15 @@ Or commit a `.mcp.json` in your project:
 {
   "mcpServers": {
     "code-laundry": {
-      "command": "node",
-      "args": ["/absolute/path/to/code-laundry/dist/mcp/server.js"],
+      "command": "npx",
+      "args": ["-y", "code-laundry@0.1.0", "mcp"],
       "env": { "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}" }
     }
   }
 }
 ```
 
-To make the agent use it, add a line like this to your `CLAUDE.md`:
+Without the plugin's skills, add a line like this to your `CLAUDE.md` so the agent uses it:
 
 > Before writing generated code to disk, call `launder_code` with `mode: "fix"` and `context.projectRoot` set to this repo. Use `cleanedCode`; if the verdict is `reject`, fix the findings and call it again. Call `check_dependencies` before adding any package.
 
@@ -116,8 +135,8 @@ Add this to `claude_desktop_config.json`:
 {
   "mcpServers": {
     "code-laundry": {
-      "command": "node",
-      "args": ["/absolute/path/to/code-laundry/dist/mcp/server.js"],
+      "command": "npx",
+      "args": ["-y", "code-laundry@0.1.0", "mcp"],
       "env": { "ANTHROPIC_API_KEY": "sk-ant-..." }
     }
   }
@@ -171,12 +190,13 @@ Input is `{ findings }`. Returns plain-language explanations and concrete fix gu
 ## CLI
 
 ```bash
-codelaundry check src/handler.ts          # report only
-codelaundry fix src/handler.ts            # apply fixes (and LLM repair if configured), write the file
-codelaundry fix src/handler.ts --stdout   # print cleaned code instead
-cat gen.ts | codelaundry check - --filename gen.ts
-codelaundry deps                          # check ./package.json
-codelaundry deps axois lodash@4.17.15     # check specific packages
+code-laundry check src/handler.ts          # report only
+code-laundry fix src/handler.ts            # apply fixes (and LLM repair if configured), write the file
+code-laundry fix src/handler.ts --stdout   # print cleaned code instead
+cat gen.ts | code-laundry check - --filename gen.ts
+code-laundry deps                          # check ./package.json
+code-laundry deps axois lodash@4.17.15     # check specific packages
+code-laundry mcp                           # start the MCP server on stdio
 ```
 
 Options: `--strict`, `--project <dir>` (default: nearest `package.json`), `--no-project`, `--config <file>`, `--diff`, `--json`.
@@ -227,6 +247,7 @@ Stage ids: `ts.parse`, `ts.format`, `ts.lint`, `ts.typecheck`, `ts.semgrep`, `se
   - It is parsed and analysed in memory.
   - Semgrep and gitleaks read a copy in a private temporary directory, which is deleted afterwards.
   - The test-run stage is not implemented in v1. If added, it will be opt-in and run only in a network-less, resource-limited container.
+- **Privacy.** See [PRIVACY.md](PRIVACY.md) for exactly what is sent where. In short: package names go to npm and OSV, and code goes nowhere unless you configure an Anthropic key for repair.
 - **Secrets are never returned or sent anywhere.**
   - Detected secret values are redacted from findings, messages, diffs and `cleanedCode`.
   - Secrets are never included in what is sent to the LLM.
@@ -298,6 +319,15 @@ pnpm typecheck
 pnpm evals
 pnpm build
 ```
+
+### Releasing
+
+```bash
+pnpm version patch      # bumps package.json, re-pins plugin/ to the new version, commits and tags
+git push --follow-tags  # the publish workflow tests and publishes to npm (needs the NPM_TOKEN secret)
+```
+
+The plugin in [`plugin/`](plugin/) launches `npx -y code-laundry@<version> mcp`, so publish to npm before pushing a plugin change that pins a new version.
 
 ## Contributing
 
